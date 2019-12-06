@@ -1,0 +1,18 @@
+---
+- name: k8s clusters
+  include_tasks: k8s-cluster.yaml
+  loop: "{{ k8s_clusters }}"
+  loop_control:
+    loop_var: k8s_cluster
+    label: "{{ k8s_cluster_name }}"
+  vars:
+    k8s_cluster_name: >-
+      {{ k8s_cluster.name | default(k8s_cluster_api_url) | default('k8s', True) }}
+    k8s_cluster_api_password: >-
+      {{ k8s_cluster.api.password | default(k8s_api_password) }}
+    k8s_cluster_api_username: >-
+      {{ k8s_cluster.api.username | default(k8s_api_username) }}
+    k8s_cluster_namespaces: >-
+      {{ k8s_cluster.namespaces | default(k8s_namespaces) }}
+    k8s_cluster_resources: >-
+      {{ k8s_cluster.resources | default(k8s_resources) }}

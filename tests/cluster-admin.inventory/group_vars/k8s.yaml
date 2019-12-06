@@ -1,0 +1,30 @@
+---
+k8s_api_validate_certs: false
+k8s_resources:
+- definition:
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: k8s-config-test-admin00
+
+k8s_namespaces:
+  k8s-config-test-admin01:
+    resources:
+    - definition:
+        apiVersion: v1
+        kind: ConfigMap
+        metadata:
+          name: configmap-from-definition
+        data:
+          foo: bar
+    - file: configmap.yaml
+    - openshift_template:
+        file: openshift-template.yaml
+        parameters:
+          NAME: configmap-from-openshift-template
+          FOO: bar
+    - template:
+        file: configmap.yaml.j2
+        vars:
+          name: configmap-from-template
+          foo: bar

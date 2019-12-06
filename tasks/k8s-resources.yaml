@@ -1,0 +1,24 @@
+---
+- name: >-
+    {{ k8s_cluster_name }} resources
+    {%- if k8s_namespace_name != '' %} in {{ k8s_namespace_name }}{% endif -%}
+  # FIXME - This produces a warning...
+  k8s: >-
+    {{ {
+      'apply': True,
+      'definition': resource_definition,
+    } | combine(k8s_cluster_auth) }}
+  loop: "{{ query('k8s_resource_definitions', k8s_resources_item) }}"
+  loop_control:
+    loop_var: resource_definition_item
+    label: >-
+      {{ resource_definition.kind }}({{ resource_definition.apiVersion }})
+      {{ resource_definition.metadata.name }}
+      {%- if 'namespace' in resource_definition.metadata %}
+      in {{ resource_definition.metadata.namespace }}
+      {%- endif -%}
+  vars:
+    resource_definition: >-
+      {{ resource_definition_item
+       | combine({'metadata':{'namespace':k8s_namespace_name}}, recursive=True)
+       if k8s_namespace_name != '' else resource_definition_item }}

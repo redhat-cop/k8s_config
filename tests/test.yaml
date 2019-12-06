@@ -1,0 +1,5 @@
+---
+- hosts: localhost
+  gather_facts: false
+  roles:
+  - k8s_config

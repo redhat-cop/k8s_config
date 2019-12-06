@@ -1,0 +1,16 @@
+---
+- name: "{{ k8s_cluster_name }} resources"
+  include_tasks: k8s-resources.yaml
+  loop: "{{ k8s_cluster_resources }}"
+  loop_control:
+    loop_var: k8s_resources_item
+
+- name: "{{ k8s_cluster_name }} namespaces"
+  include_tasks: k8s-namespace.yaml
+  loop: "{{ k8s_cluster_namespaces | dict2items }}"
+  loop_control:
+    loop_var: k8s_namespaces_item
+    label: "{{ k8s_namespace_name }}"
+  vars:
+    k8s_namespace_name: "{{ k8s_namespaces_item.key }}"
+    k8s_namespace_config: "{{ k8s_namespaces_item.value }}"

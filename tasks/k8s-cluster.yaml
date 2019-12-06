@@ -1,0 +1,25 @@
+---
+- name: "{{ k8s_cluster_name }} authentication"
+  k8s_auth:
+    host: "{{ k8s_cluster.api.url | default(k8s_api_url) }}"
+    username: "{{ k8s_cluster_api_username }}"
+    password: "{{ k8s_cluster_api_password }}"
+    validate_certs: "{{ k8s_cluster_api_validate_certs | bool }}"
+  when:
+  - k8s_cluster_api_username != ''
+  - k8s_cluster_api_password != ''
+  register: r_k8s_auth
+
+- name: "{{ k8s_cluster_name }} configuration"
+  include_tasks: k8s-cluster-config.yaml
+  vars:
+    k8s_cluster_auth: >-
+      {{ {
+        'api_key': r_k8s_auth.api_key | default(k8s_cluster.api.token) | default(k8s_api_token),
+        'ca_cert': k8s_cluster.api.client_ca | default(k8s_api_client_ca),
+        'client_cert': k8s_cluster.api.client_cert | default(k8s_api_client_cert),
+        'client_key': k8s_cluster.api.client_key | default(k8s_api_client_key),
+        'host': k8s_cluster.api.url | default(k8s_api_url),
+        'validate_certs': k8s_cluster.api.validate_certs | default(k8s_api_validate_certs),
+        'kubeconfig': k8s_cluster.kubeconfig | default(k8s_kubeconfig),
+      } }}

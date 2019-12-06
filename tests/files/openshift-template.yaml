@@ -1,0 +1,17 @@
+---
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: openshift-template
+objects:
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: ${NAME}
+  stringData:
+    foo: ${FOO}
+parameters:
+- name: NAME
+  required: true
+- name: FOO
+  required: true

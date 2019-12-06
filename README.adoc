@@ -1,0 +1,25 @@
+= k8s_config
+
+Ansible role for managing Kubernetes configuration
+
+== Requirements
+
+Ansible 2.9+
+
+k8s module support
+
+== Role Variables
+
+TBD
+
+== Example Playbook
+
+TBD
+
+== License
+
+GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+== Author Information
+
+Johnathan Kupferer
