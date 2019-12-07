@@ -1,5 +1,5 @@
 ---
-k8s_api_client_ca: null
+k8s_api_ca_cert: null
 k8s_api_client_cert: null
 k8s_api_client_key: null
 k8s_kubeconfig: null
@@ -17,3 +17,5 @@ k8s_clusters: [{}]
 k8s_namespaces: {}
 k8s_resources: []
 k8s_namespace_name: ''
+
+oc_cmd: oc

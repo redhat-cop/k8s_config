@@ -56,39 +56,6 @@ class LookupModule(LookupBase):
             ret.extend(self.from_definition(yaml_document))
         return ret
 
-    def from_openshift_template(self, openshift_template, variables):
-        command = ['oc','process']
-        temp_path = None
-        if 'file' in openshift_template:
-            fd, temp_path = tempfile.mkstemp()
-
-            filename = openshift_template['file']
-            lookupfile = self.find_file_in_search_path(variables, 'files', filename)
-            if not lookupfile:
-                raise AnsibleError('Unable to find OpenShift template: {}'.format(filename))
-            b_contents, show_data = self._loader._get_file_contents(lookupfile)
-            contents = to_text(b_contents, errors='surrogate_or_strict')
-            with open(fd, 'w') as f:
-                f.write(contents)
-            #oc process --local -f lookupfile
-            command.extend(['--local', '-f', temp_path])
-        elif 'name' in openshift_template:
-            command.append(openshift_template['name'])
-
-        for k, v in openshift_template.get('parameters', {}).items():
-            command.extend(['-p', '{}={}'.format(k, v)])
-
-        p = subprocess.Popen(
-            command, cwd=self._loader.get_basedir(), shell=False,
-            stdin=subprocess.PIPE, stdout=subprocess.PIPE
-        )
-        (stdout, stderr) = p.communicate()
-
-        if temp_path:
-            os.unlink(temp_path)
-
-        return self.from_definition(yaml.safe_load(stdout.decode("utf-8")))
-
     def from_template(self, template, variables):
         template_file = template['file']
         template_vars = template.get('vars', {})
@@ -136,8 +103,6 @@ class LookupModule(LookupBase):
                 ret.extend(self.from_definition(term['definition']))
             elif 'file' in term:
                 ret.extend(self.from_file(term['file'], variables))
-            elif 'openshift_template' in term:
-                ret.extend(self.from_openshift_template(term['openshift_template'], variables))
             elif 'template' in term:
                 ret.extend(self.from_template(term['template'], variables))
             else:

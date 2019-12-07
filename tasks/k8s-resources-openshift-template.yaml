@@ -1,0 +1,33 @@
+---
+- name: Process OpenShift template
+  command: >-
+    {{ oc_cmd }} process
+    {% if k8s_cluster_auth.api_key != None %}--token=k8s_cluster_auth.api_key{% endif %}
+    {% if k8s_cluster_auth.ca_cert != None %}--certificate-authority=k8s_cluster_auth.ca_cert{% endif %}
+    {% if k8s_cluster_auth.client_cert != None %}--client-certificate=k8s_cluster_auth.client_cert{% endif %}
+    {% if k8s_cluster_auth.client_key != None %}--client-key=k8s_cluster_auth.client_key{% endif %}
+    {% if k8s_cluster_auth.host != None %}--server=k8s_cluster_auth.host{% endif %}
+    {% if k8s_cluster_auth.kubeconfig != None %}--kubeconfig=k8s_cluster_auth.kubeconfig{% endif %}
+    {% if not k8s_cluster_auth.validate_certs | bool %}--insecure-skip-tls-verify{% endif %}
+    {% if 'file' in k8s_resources_item.openshift_template %}
+    --local -f -
+    {% else %}
+    {{ k8s_resources_item.openshift_template.name }}
+    {% endif %}
+    {% for k, v in (k8s_resources_item.openshift_template.parameters|default({})).items() %}
+    -p {{ (k ~ '=' ~ v) | quote }}
+    {% endfor %}
+  args:
+    stdin: >-
+      {% if 'file' in k8s_resources_item.openshift_template -%}
+      {{ lookup('file', k8s_resources_item.openshift_template.file) }}
+      {%- endif %}
+  changed_when: false
+  check_mode: false
+  register: r_process_openshift_template
+
+- name: "{{ k8s_cluster_name }} process OpenShift template resources"
+  include_tasks: k8s-resources-definition.yaml
+  vars:
+    k8s_resources_item:
+      definition: "{{ r_process_openshift_template.stdout | from_yaml }}"

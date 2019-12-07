@@ -21,7 +21,7 @@
     k8s_cluster_auth: >-
       {{ {
         'api_key': r_k8s_auth.api_key | default(k8s_cluster.api.token) | default(k8s_api_token),
-        'ca_cert': k8s_cluster.api.client_ca | default(k8s_api_client_ca),
+        'ca_cert': k8s_cluster.api.ca_cert | default(k8s_api_ca_cert),
         'client_cert': k8s_cluster.api.client_cert | default(k8s_api_client_cert),
         'client_key': k8s_cluster.api.client_key | default(k8s_api_client_key),
         'host': k8s_cluster.api.url | default(k8s_api_url),

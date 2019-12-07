@@ -20,7 +20,7 @@ If the host kubeconfig is already authenticated to the target cluster then no au
 
 These variables map to parameters of the `k8s` and `k8s_info` modules.
 
-* `k8s_api_client_ca` - Maps to `ca_cert`, which is the certificate provided to identify the client to the server when `client_cert` is also provided.
+* `k8s_api_ca_cert` - Maps to `ca_cert`, which is the certificate provided to identify the client to the server when `client_cert` is also provided.
 
 * `k8s_api_client_cert` - Maps to `client_cert`.
 
@@ -79,7 +79,7 @@ file: configmap.yaml
 ----
 
 * `openshift_template` - OpenShift template file and parameters.
-The `oc` command must be installed on the Ansible control host.
+The `oc` command must be installed to process the template on the host.
 +
 ----
 openshift_template:
@@ -109,7 +109,7 @@ Each cluster dictionary may specify:
 
 * `api` - API connection and authentication settings, including:
 
-** `client_ca` - Cluster override for `k8s_api_client_ca`
+** `ca_cert` - Cluster override for `k8s_api_ca_cert`
 
 ** `client_cert` - Cluster override for `k8s_api_client_cert`
 
