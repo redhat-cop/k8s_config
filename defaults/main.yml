@@ -2,6 +2,7 @@
 k8s_api_client_ca: null
 k8s_api_client_cert: null
 k8s_api_client_key: null
+k8s_kubeconfig: null
 
 # Default API key token. May be overridden by setting api.token within k8s_clusters
 k8s_api_token: null
@@ -13,7 +14,6 @@ k8s_api_username: null
 k8s_api_password: null
 
 k8s_clusters: [{}]
-k8s_kubeconfig: null
 k8s_namespaces: {}
 k8s_resources: []
 k8s_namespace_name: ''

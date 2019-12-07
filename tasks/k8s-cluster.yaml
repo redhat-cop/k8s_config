@@ -5,6 +5,11 @@
     username: "{{ k8s_cluster_api_username }}"
     password: "{{ k8s_cluster_api_password }}"
     validate_certs: "{{ k8s_cluster_api_validate_certs | bool }}"
+  vars:
+    k8s_cluster_api_password: >-
+      {{ k8s_cluster.api.password | default(k8s_api_password) }}
+    k8s_cluster_api_username: >-
+      {{ k8s_cluster.api.username | default(k8s_api_username) }}
   when:
   - k8s_cluster_api_username != ''
   - k8s_cluster_api_password != ''

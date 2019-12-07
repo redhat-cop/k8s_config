@@ -10,11 +10,130 @@ k8s module support
 
 == Role Variables
 
-TBD
+Kubernetes configuration is specified through role variables.
+These variables can be stored in the ansible inventory or dynamically loaded with `include_vars` and other methods provided by ansible.
+
+=== Authentication Variables
+
+The following variables are provided for cluster authentication.
+If the host kubeconfig is already authenticated to the target cluster then no authentication variables are required.
+
+These variables map to parameters of the `k8s` and `k8s_info` modules.
+
+* `k8s_api_client_ca` - Maps to `ca_cert`, which is the certificate provided to identify the client to the server when `client_cert` is also provided.
+
+* `k8s_api_client_cert` - Maps to `client_cert`.
+
+* `k8s_api_client_key` - Maps to `client_key`.
+
+* `k8s_api_token` - Maps to `api_key`.
+
+* `k8s_api_url` - Maps to `host`, which is the cluster API URL.
+
+* `k8s_api_validate_certs` - Maps to `validate_certs`.
+
+* `k8s_kubeconfig` - Maps to `kubeconfig`.
+
+User and service account tokens are the preferred method of authentication for `k8s_config`,
+The parameters `k8s_api_username` and `k8s_api_password` may be provided to authenticate to the cluster API to receive a token which will then be used in subsequent API communication.
+
+=== Configuration Variables
+
+==== Cluster configuration
+
+* `k8s_resources` -
+  List of Kubernetes resource definitions.
+  Resource definitions may be given as dictionaries described below.
+  Namespaced resources given in this variables should include `metadata.namespace`.
+
+* `k8s_namespaces` -
+  Dictionary of Kubernetes namespaces and configuration to apply to the namespace.
+  If a namespace does not exist then it will be created dynamically.
+  OpenShift ProjectRequests are used to create namespace if direct creation is not permitted.
+
+** `resources` - List of Kubernetes resource definitions to apply to the namespace.
+
+==== Resource Definitions:
+
+Each resource definition is given as a dictionary.
+The presence of the key `definition`, `file`, `openshift_template`, or `template` determines how resource definitions are handled.
+
+* `definition` - Direct resource definition within the Ansible variable:
++
+----
+definition:
+  apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: myconfig
+  data:
+    hostname: k8s.example.com
+----
+
+* `file` - File lookup of resources.
+The value must be a file name which can be found in the Ansible file search path.
+Multiple resource definitions can be included in a single file by including a resource of kind `v1/List` and by including multiple YAML documents in the file.
++
+----
+file: configmap.yaml
+----
+
+* `openshift_template` - OpenShift template file and parameters.
+The `oc` command must be installed on the Ansible control host.
++
+----
+openshift_template:
+  file: openshift-template.yaml
+  parameters:
+    NAME: myconfig
+    HOSTNAME: k8s.example.com
+----
+
+* `template` - Ansible Jinja2 template with file and variables.
+The template file must be a file name which can be found in the Ansible template search path.
+Variables provided are in addition to standard Ansible variables such as inventory host variables.
++
+----
+template:
+  file: configmap.yaml.j2
+  vars:
+    name: myconfig
+    hostname: k8s.example.com
+----
+
+=== Multi-cluster Support
+
+The variable `k8s_clusters` can be set to configure multiple kubernetes clusters with a single role execution.
+`k8s_clusters` is given as a list of dictionaries.
+Each cluster dictionary may specify:
+
+* `api` - API connection and authentication settings, including:
+
+** `client_ca` - Cluster override for `k8s_api_client_ca`
+
+** `client_cert` - Cluster override for `k8s_api_client_cert`
+
+** `client_key` - Cluster override for `k8s_api_client_key`
+
+** `token` - Cluster override for `k8s_api_token`
+
+** `url` - Cluster override for `k8s_api_url`
+
+** `validate_certs` - Cluster override for `k8s_api_validate_certs`
+
+* `namespaces` - Cluster override for `k8s_namespaces`
+
+* `resources` - Cluster override for `k8s_resources`
+
 
 == Example Playbook
 
-TBD
+----
+- hosts: localhost
+  gather_facts: false
+  roles:
+  - role: k8s_config
+----
 
 == License
 
