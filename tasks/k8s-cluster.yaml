@@ -18,7 +18,7 @@
 - name: "{{ k8s_cluster_name }} configuration"
   include_tasks: k8s-cluster-config.yaml
   vars:
-    k8s_cluster_auth: >-
+    k8s_cluster_api: >-
       {{ {
         'api_key': r_k8s_auth.api_key | default(k8s_cluster.api.token) | default(k8s_api_token),
         'ca_cert': k8s_cluster.api.ca_cert | default(k8s_api_ca_cert),

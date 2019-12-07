@@ -1,10 +1,8 @@
 ---
 - name: "{{ k8s_cluster_name }} {{ k8s_namespace_name }} namespace"
-  # FIXME - This produces a warning...
-  k8s_namespace: >-
-    {{ {
-      'name': k8s_namespace_name,
-    } | combine(k8s_cluster_auth) }}
+  k8s_namespace:
+    name: "{{ k8s_namespace_name }}"
+    api: "{{ k8s_cluster_api }}"
 
 - name: "{{ k8s_cluster_name }} {{ k8s_namespace_name }} namespace resources"
   include_tasks: k8s-resources-{{ k8s_resources_handling }}.yaml

@@ -2,13 +2,13 @@
 - name: Process OpenShift template
   command: >-
     {{ oc_cmd }} process
-    {% if k8s_cluster_auth.api_key != None %}--token=k8s_cluster_auth.api_key{% endif %}
-    {% if k8s_cluster_auth.ca_cert != None %}--certificate-authority=k8s_cluster_auth.ca_cert{% endif %}
-    {% if k8s_cluster_auth.client_cert != None %}--client-certificate=k8s_cluster_auth.client_cert{% endif %}
-    {% if k8s_cluster_auth.client_key != None %}--client-key=k8s_cluster_auth.client_key{% endif %}
-    {% if k8s_cluster_auth.host != None %}--server=k8s_cluster_auth.host{% endif %}
-    {% if k8s_cluster_auth.kubeconfig != None %}--kubeconfig=k8s_cluster_auth.kubeconfig{% endif %}
-    {% if not k8s_cluster_auth.validate_certs | bool %}--insecure-skip-tls-verify{% endif %}
+    {% if k8s_cluster_api.api_key != None %}--token=k8s_cluster_api.api_key{% endif %}
+    {% if k8s_cluster_api.ca_cert != None %}--certificate-authority=k8s_cluster_api.ca_cert{% endif %}
+    {% if k8s_cluster_api.client_cert != None %}--client-certificate=k8s_cluster_api.client_cert{% endif %}
+    {% if k8s_cluster_api.client_key != None %}--client-key=k8s_cluster_api.client_key{% endif %}
+    {% if k8s_cluster_api.host != None %}--server=k8s_cluster_api.host{% endif %}
+    {% if k8s_cluster_api.kubeconfig != None %}--kubeconfig=k8s_cluster_api.kubeconfig{% endif %}
+    {% if not k8s_cluster_api.validate_certs | bool %}--insecure-skip-tls-verify{% endif %}
     {% if 'file' in k8s_resources_item.openshift_template %}
     --local -f -
     {% else %}
