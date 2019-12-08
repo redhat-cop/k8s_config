@@ -1,0 +1,9 @@
+---
+common_dev_loaded: True
+common_dev_override: True
+
+namespace_dev_resources:
+- template:
+    file: configmap.yaml.j2
+    vars:
+      name: from-dev

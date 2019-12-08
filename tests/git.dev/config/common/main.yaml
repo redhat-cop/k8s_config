@@ -1,0 +1,13 @@
+---
+common_main_loaded: True
+common_dev_override: False
+
+namespace_common_resources:
+- template:
+    file: configmap.yaml.j2
+    vars:
+      name: from-common
+
+k8s_namespaces:
+  k8s-config-test-git-dev01:
+    resources: "{{ namespace_common_resources + namespace_dev_resources }}"
