@@ -13,7 +13,10 @@ k8s_api_validate_certs: true
 k8s_api_username: null
 k8s_api_password: null
 
-k8s_clusters: [{}]
+# Default clusters is a single generic k8s cluster
+k8s_clusters:
+- name: k8s
+
 k8s_namespaces: {}
 k8s_resources: []
 k8s_namespace_name: ''

@@ -1,14 +1,14 @@
 ---
-- name: "{{ k8s_cluster_name }} {{ k8s_namespace_name }} namespace"
+- name: "{{ _k8s_cluster_name }} {{ _k8s_namespace_name }} namespace"
   k8s_namespace:
-    name: "{{ k8s_namespace_name }}"
-    api: "{{ k8s_cluster_api }}"
+    name: "{{ _k8s_namespace_name }}"
+    api: "{{ _k8s_cluster_api }}"
 
-- name: "{{ k8s_cluster_name }} {{ k8s_namespace_name }} namespace resources"
-  include_tasks: k8s-resources-{{ k8s_resources_handling }}.yaml
-  loop: "{{ k8s_namespace_config.resources | default([]) }}"
+- name: "{{ _k8s_cluster_name }} {{ _k8s_namespace_name }} namespace resources"
+  include_tasks: k8s-resources-{{ _k8s_resources_handling }}.yaml
+  loop: "{{ _k8s_namespace_config.resources | default([]) }}"
   loop_control:
-    loop_var: k8s_resources_item
+    loop_var: _k8s_resources_item
   vars:
-    k8s_resources_handling: >-
-      {{ 'openshift-template' if 'openshift_template' in k8s_resources_item else 'definition' }}
+    _k8s_resources_handling: >-
+      {{ 'openshift-template' if 'openshift_template' in _k8s_resources_item else 'definition' }}

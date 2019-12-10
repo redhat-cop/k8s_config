@@ -1,19 +1,19 @@
 ---
-- name: "{{ k8s_cluster_name }} resources"
-  include_tasks: k8s-resources-{{ k8s_resources_handling }}.yaml
-  loop: "{{ k8s_cluster_resources }}"
+- name: "{{ _k8s_cluster_name }} resources"
+  include_tasks: k8s-resources-{{ _k8s_resources_handling }}.yaml
+  loop: "{{ _k8s_cluster_resources }}"
   loop_control:
-    loop_var: k8s_resources_item
+    loop_var: _k8s_resources_item
   vars:
-    k8s_resources_handling: >-
-      {{ 'openshift-template' if 'openshift_template' in k8s_resources_item else 'definition' }}
+    _k8s_resources_handling: >-
+      {{ 'openshift-template' if 'openshift_template' in _k8s_resources_item else 'definition' }}
 
-- name: "{{ k8s_cluster_name }} namespaces"
+- name: "{{ _k8s_cluster_name }} namespaces"
   include_tasks: k8s-namespace.yaml
-  loop: "{{ k8s_cluster_namespaces | dict2items }}"
+  loop: "{{ _k8s_cluster_namespaces | dict2items }}"
   loop_control:
-    loop_var: k8s_namespaces_item
-    label: "{{ k8s_namespace_name }}"
+    loop_var: _k8s_namespaces_item
+    label: "{{ _k8s_namespace_name }}"
   vars:
-    k8s_namespace_name: "{{ k8s_namespaces_item.key }}"
-    k8s_namespace_config: "{{ k8s_namespaces_item.value }}"
+    _k8s_namespace_name: "{{ _k8s_namespaces_item.key }}"
+    _k8s_namespace_config: "{{ _k8s_namespaces_item.value }}"

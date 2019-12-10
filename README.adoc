@@ -39,6 +39,27 @@ The parameters `k8s_api_username` and `k8s_api_password` may be provided to auth
 
 === Configuration Variables
 
+==== Configuration Sources
+
+Configuration sources can be configured with `k8s_config_sources`.
+If provided, configuration sources will be used to load variables and be added to the search path for files and templates referended in `k8s_config` variables.
+
+Settings for configuration sources:
+
+* `name` -
+  Source name, required.
+
+* `base_path` -
+  Base directory searched for configuration.
+  If not provided then the root of the source git repository is used for git sources.
+  Base path is optional for git config sources but required for local config sources.
+
+* `config_search_path` -
+  List of search paths relative to the base path used to find variables, files, and templates.
+  The values in `config_search_path` are relative to `base_path`.
+  If `config_search_path` is not given in `k8s_config_sources` then it can be provided by defining `k8s_config_search_path` in a `main.yaml` file located in the base path.
+  If no search path is given or discovered, then the base path is added to the search path.
+
 ==== Cluster configuration
 
 * `k8s_resources` -
