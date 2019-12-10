@@ -28,3 +28,7 @@ k8s_namespaces:
         vars:
           name: configmap-from-template
           foo: bar
+  k8s-config-test-admin02:
+    resources:
+    - openshift_template:
+        url: https://raw.githubusercontent.com/sclorg/cakephp-ex/master/openshift/templates/cakephp.json

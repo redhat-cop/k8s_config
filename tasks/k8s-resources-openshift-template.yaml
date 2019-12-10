@@ -9,7 +9,7 @@
     {% if _k8s_cluster_api.host != None %}--server=_k8s_cluster_api.host{% endif %}
     {% if _k8s_cluster_api.kubeconfig != None %}--kubeconfig=_k8s_cluster_api.kubeconfig{% endif %}
     {% if not _k8s_cluster_api.validate_certs | bool %}--insecure-skip-tls-verify{% endif %}
-    {% if 'file' in _k8s_resources_item.openshift_template %}
+    {% if 'file' in _k8s_resources_item.openshift_template or 'url' in _k8s_resources_item.openshift_template %}
     --local -f -
     {% else %}
     {{ _k8s_resources_item.openshift_template.name }}
@@ -18,10 +18,20 @@
     -p {{ (k ~ '=' ~ v) | quote }}
     {% endfor %}
   args:
-    stdin: >-
-      {% if 'file' in _k8s_resources_item.openshift_template -%}
-      {{ lookup('file', _k8s_resources_item.openshift_template.file) }}
-      {%- endif %}
+    # The leading blank line below prevents Ansible from auto-converting from
+    # JSON data to object.
+    stdin: |
+
+      {% if 'file' in _k8s_resources_item.openshift_template %}
+      {{   lookup('file', _k8s_resources_item.openshift_template.file) }}
+      {% elif 'url' in _k8s_resources_item.openshift_template %}
+      {{    lookup('url', _k8s_resources_item.openshift_template.url,
+              headers=_k8s_resources_item.openshift_template.headers|default({}),
+              split_lines=False,
+              validate_certs=_k8s_resources_item.openshift_template.validate_certs|default(True)
+            )
+      }}
+      {% endif %}
   changed_when: false
   check_mode: false
   register: _k8s_process_openshift_template
