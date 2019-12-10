@@ -32,3 +32,4 @@ k8s_namespaces:
     resources:
     - openshift_template:
         url: https://raw.githubusercontent.com/sclorg/cakephp-ex/master/openshift/templates/cakephp.json
+    - url: https://raw.githubusercontent.com/redhat-gpte-devopsautomation/k8s_config/master/tests/files/configmap.yaml

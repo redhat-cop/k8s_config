@@ -26,6 +26,7 @@ _raw:
 
 from copy import deepcopy
 import os
+import requests
 import subprocess
 import tempfile
 import yaml
@@ -45,7 +46,7 @@ class LookupModule(LookupBase):
         else:
             return [definition]
 
-    def from_file(self, filename, searchpath, variables):
+    def from_file(self, filename, searchpath):
         lookupfile = self._loader.path_dwim_relative_stack(searchpath, 'files', filename)
         b_contents, show_data = self._loader._get_file_contents(lookupfile)
         contents = to_text(b_contents, errors='surrogate_or_strict')
@@ -84,6 +85,16 @@ class LookupModule(LookupBase):
             ret.extend(self.from_definition(yaml_document))
         return ret
 
+    def from_url(self, url):
+        try:
+            resp = requests.get(url)
+        except Exception as err:
+            raise AnsibleError('Failed to fetch {}: {}'.format(url, err))
+        ret = []
+        for yaml_document in yaml.safe_load_all(resp.text):
+            ret.extend(self.from_definition(yaml_document))
+        return ret
+
     def run(self, terms, variables=None, **kwargs):
         ret = []
         searchpath = variables.get('k8s_config_search_path', []).copy()
@@ -93,9 +104,11 @@ class LookupModule(LookupBase):
             if 'definition' in term:
                 ret.extend(self.from_definition(term['definition']))
             elif 'file' in term:
-                ret.extend(self.from_file(term['file'], searchpath, variables))
+                ret.extend(self.from_file(term['file'], searchpath))
             elif 'template' in term:
                 ret.extend(self.from_template(term['template'], searchpath, variables))
+            elif 'url' in term:
+                ret.extend(self.from_url(term['url']))
             else:
                 raise AnsibleError('Unknown resource definition: {}'.format(term))
 
