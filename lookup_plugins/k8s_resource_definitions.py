@@ -2,7 +2,7 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 DOCUMENTATION = """
-    lookup: template
+    lookup: k8s_resource_definitions
     author: Johnathan kupferer <jkupfere@redhat.com>
     version_added: "2.9"
     short_description: Resolve kubernetes resource definitions
@@ -45,10 +45,8 @@ class LookupModule(LookupBase):
         else:
             return [definition]
 
-    def from_file(self, filename, variables):
-        lookupfile = self.find_file_in_search_path(variables, 'files', filename)
-        if not lookupfile:
-            raise AnsibleError('Unable to find file: {}'.format(filename))
+    def from_file(self, filename, searchpath, variables):
+        lookupfile = self._loader.path_dwim_relative_stack(searchpath, 'files', filename)
         b_contents, show_data = self._loader._get_file_contents(lookupfile)
         contents = to_text(b_contents, errors='surrogate_or_strict')
         ret = []
@@ -56,28 +54,19 @@ class LookupModule(LookupBase):
             ret.extend(self.from_definition(yaml_document))
         return ret
 
-    def from_template(self, template, variables):
+    def from_template(self, template, searchpath, variables):
         template_file = template['file']
         template_vars = template.get('vars', {})
 
-        lookupfile = self.find_file_in_search_path(variables, 'templates', template_file)
-        if not lookupfile:
-            raise AnsibleError('Unable to find file: {}'.format(template_file))
+        lookupfile = self._loader.path_dwim_relative_stack(searchpath, 'templates', template_file)
         b_template_data, show_data = self._loader._get_file_contents(lookupfile)
         template_data = to_text(b_template_data, errors='surrogate_or_strict')
 
         # set jinja2 internal search path for includes
-        searchpath = variables.get('ansible_search_path', [])
-        if searchpath:
-            # our search paths aren't actually the proper ones for jinja includes.
-            # We want to search into the 'templates' subdir of each search path in
-            # addition to our original search paths.
-            newsearchpath = []
-            for p in searchpath:
-                newsearchpath.append(os.path.join(p, 'templates'))
-                newsearchpath.append(p)
-            searchpath = newsearchpath
-        searchpath.insert(0, os.path.dirname(lookupfile))
+        template_searchpath = [
+            os.path.join(item, 'templates') for item in searchpath
+        ]
+        template_searchpath.insert(0, os.path.dirname(lookupfile))
 
         self._templar.environment.loader.searchpath = searchpath
 
@@ -97,14 +86,16 @@ class LookupModule(LookupBase):
 
     def run(self, terms, variables=None, **kwargs):
         ret = []
+        searchpath = variables.get('k8s_config_search_path', []).copy()
+        searchpath.extend(variables.get('ansible_search_path', []))
 
         for term in terms:
             if 'definition' in term:
                 ret.extend(self.from_definition(term['definition']))
             elif 'file' in term:
-                ret.extend(self.from_file(term['file'], variables))
+                ret.extend(self.from_file(term['file'], searchpath, variables))
             elif 'template' in term:
-                ret.extend(self.from_template(term['template'], variables))
+                ret.extend(self.from_template(term['template'], searchpath, variables))
             else:
                 raise AnsibleError('Unknown resource definition: {}'.format(term))
 

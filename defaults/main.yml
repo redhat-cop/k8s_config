@@ -18,4 +18,21 @@ k8s_namespaces: {}
 k8s_resources: []
 k8s_namespace_name: ''
 
+# k8s_config_sources is provided as a list of dictionaries
+#
+# Each dict should have a key `name` and may have key `git`.
+# If `git` is given, then the parameters there will be used on localhost
+# with the git module to clone the source.
+#
+# If not `git` key is given then the source is assumed to be local with paths
+# relative to the inventory directory
+k8s_config_sources: []
+
+# Directory to store config sources
+# Empty value causes a temporary directory to be used
+k8s_config_cache_dir: ''
+
+# Explicit search path for finding files and templates
+k8s_config_search_path: []
+
 oc_cmd: oc

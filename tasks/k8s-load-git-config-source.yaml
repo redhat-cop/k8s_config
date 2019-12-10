@@ -1,0 +1,46 @@
+---
+- name: Git clone config source {{ k8s_config_source.name }}
+  k8s_git_clone:
+    dest: "{{ k8s_config_source_cache_dir }}"
+    module_args: "{{ k8s_config_source.git }}"
+  register: r_git_clone
+  changed_when: false
+  delegate_to: localhost
+
+- name: Include main config for {{ k8s_config_source.name }}
+  include_vars:
+    file: "{{ k8s_config_main_file }}"
+    name: k8s_config_main
+  vars:
+    k8s_config_main_file: >-
+      {{ lookup('first_found', {
+        'files': ['main.yaml', 'main.yml', 'main.json'],
+        'paths': [k8s_config_source_base_path]
+      }, errors='ignore') }}
+  when: k8s_config_main_file != ''
+
+- name: Update k8s_config_search_path
+  set_fact:
+    k8s_config_search_path: >-
+      {{ k8s_config_search_path | default([])
+       + k8s_config_source.config_search_path
+       | default(k8s_config_main.k8s_config_search_path)
+       | default([''])
+       | map('regex_replace', '^', k8s_config_source_base_path ~ '/')
+       | list }}
+  run_once: True
+
+- name: Include vars from included config search path for {{ k8s_config_source.name }}
+  include_vars:
+    depth: 1
+    dir: "{{ lookup('vars', 'path') }}"
+    files_matching: "^[^.].*\\.(ya?ml|json)"
+  loop: >-
+    {{ k8s_config_source.config_search_path
+     | default(k8s_config_main.k8s_config_search_path)
+     | default([''])
+     | map('regex_replace', '^', k8s_config_source_base_path ~ '/')
+     | list }}
+  loop_control:
+    loop_var: path
+  when: path is directory

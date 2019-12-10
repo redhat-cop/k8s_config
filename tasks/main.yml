@@ -1,4 +1,32 @@
 ---
+#FIXME - Implement sanity check for role
+#- name: Sanity Check
+
+- name: Create source tempdir
+  tempfile:
+    prefix: k8s_config_source-
+    state: directory
+  register: r_source_tempdir
+  when: k8s_config_cache_dir == ''
+  delegate_to: localhost
+  run_once: true
+  changed_when: false
+
+- name: Load configuration sources
+  include_tasks: k8s-load-{{ k8s_source_type }}-config-source.yaml
+  loop: "{{ k8s_config_sources[::-1] }}"
+  loop_control:
+    loop_var: k8s_config_source
+    label: "{{ k8s_config_source.name }}"
+  vars:
+    k8s_source_type: >-
+      {{ 'git' if 'git' in k8s_config_source else 'local' }}
+    k8s_config_source_cache_dir: >-
+      {{ k8s_config_cache_dir | default(r_source_tempdir.path, True)
+       ~ '/' ~ k8s_config_source.name }}
+    k8s_config_source_base_path: >-
+      {{ k8s_config_source_cache_dir ~ '/' ~ k8s_config_source.base_path | default('') }}
+
 - name: k8s clusters
   include_tasks: k8s-cluster.yaml
   loop: "{{ k8s_clusters }}"
@@ -12,3 +40,12 @@
       {{ k8s_cluster.namespaces | default(k8s_namespaces) }}
     k8s_cluster_resources: >-
       {{ k8s_cluster.resources | default(k8s_resources) }}
+
+- name: Remove source tempdir
+  file:
+    path: "{{ r_source_tempdir.path }}"
+    state: absent
+  when: r_source_tempdir.path | default('') != ''
+  delegate_to: localhost
+  run_once: true
+  changed_when: false
