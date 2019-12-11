@@ -26,7 +26,7 @@
     # Config source base path uses cache directory for git or otherwise the
     # base_path is required
     _k8s_config_source_base_path: >-
-      {% if 'git' in _k8s_config_source %}
+      {% if 'git' in _k8s_config_source -%}
       {{ _k8s_config_source_cache_dir ~ '/' ~ _k8s_config_source.base_path | default('') }}
       {%- else -%}
       {{ _k8s_config_source.base_path }}
