@@ -8,6 +8,14 @@ Ansible 2.9+
 
 k8s module support
 
+== Installation
+
+Install with `ansible-galaxy`:
+
+----
+ansible-galaxy install git+https://github.com/redhat-gpte-devopsautomation/k8s_config.git,0.1.4
+----
+
 == Role Variables
 
 Kubernetes configuration is specified through role variables.
@@ -60,6 +68,10 @@ Settings for configuration sources:
   If `config_search_path` is not given in `k8s_config_sources` then it can be provided by defining `k8s_config_search_path` in a `main.yaml` file located in the base path.
   If no search path is given or discovered, then the base path is added to the search path.
 
+* `git` -
+  Dictionary of parameters passed to the `git` module to clone the git repository.
+  This should at least include `repo`.
+
 ==== Cluster configuration
 
 * `k8s_resources` -
@@ -100,6 +112,8 @@ file: configmap.yaml
 ----
 
 * `openshift_template` - OpenShift template file and parameters.
+The file can be specified with `file` or `url`.
+A dictionary, `parameters` is used for template parameters.
 The `oc` command must be installed to process the template on the host.
 +
 ----
