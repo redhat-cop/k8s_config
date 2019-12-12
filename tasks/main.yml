@@ -11,6 +11,7 @@
   delegate_to: localhost
   run_once: true
   changed_when: false
+  check_mode: false
 
 - name: Load configuration sources
   include_tasks: k8s-load-config-source.yaml
@@ -54,3 +55,4 @@
   delegate_to: localhost
   run_once: true
   changed_when: false
+  check_mode: false

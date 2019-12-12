@@ -4,6 +4,7 @@
     dest: "{{ _k8s_config_source_cache_dir }}"
     module_args: "{{ _k8s_config_source.git }}"
   changed_when: false
+  check_mode: false
   delegate_to: localhost
   when: >-
     'git' in _k8s_config_source
