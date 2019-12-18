@@ -97,7 +97,7 @@ class LookupModule(LookupBase):
 
     def run(self, terms, variables=None, **kwargs):
         ret = []
-        searchpath = variables.get('k8s_config_search_path', []).copy()
+        searchpath = deepcopy(variables.get('k8s_config_search_path', []))
         searchpath.extend(variables.get('ansible_search_path', []))
 
         for term in terms:
