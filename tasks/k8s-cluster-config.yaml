@@ -13,6 +13,9 @@
       }}
     _k8s_resources_item: "{{ _k8s_cluster_resources_item }}"
     _k8s_namespace_name: "{{ _k8s_cluster_resources_item.namespace | default('') }}"
+  when: >-
+    _k8s_cluster_resources_item.when | default('') == '' or
+    lookup('test', _k8s_cluster_resources_item.when)
 
 - name: "{{ _k8s_cluster_name }} namespaces"
   include_tasks: k8s-namespace.yaml

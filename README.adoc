@@ -72,6 +72,10 @@ Settings for configuration sources:
   Dictionary of parameters passed to the `git` module to clone the git repository.
   This should at least include `repo`.
 
+* `when` -
+  Optional condition for loading configuration source.
+  This can be useful to conditionally load a configuration source depending on whether credentials are available.
+
 ==== Cluster configuration
 
 * `k8s_resources` -
@@ -135,6 +139,9 @@ template:
     name: myconfig
     hostname: k8s.example.com
 ----
+
+* `when` - All resources support use of when conditions to control processing.
+For example, a template may be conditionally processed depending on variables being set.
 
 === Multi-cluster Support
 

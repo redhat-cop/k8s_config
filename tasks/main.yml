@@ -32,6 +32,9 @@
       {%- else -%}
       {{ _k8s_config_source.base_path }}
       {%- endif %}
+  when: >-
+    _k8s_config_source.when | default('') == '' or
+    lookup('test', _k8s_config_source.when)
 
 - name: k8s clusters
   include_tasks: k8s-cluster.yaml

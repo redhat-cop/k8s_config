@@ -16,3 +16,6 @@
       'definition'
       }}
     _k8s_resources_item: "{{ _k8s_namespace_resources_item }}"
+  when: >-
+    _k8s_namespace_resources_item.when | default('') == '' or
+    lookup('test', _k8s_namespace_resources_item.when)
