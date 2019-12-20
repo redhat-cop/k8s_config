@@ -13,7 +13,7 @@ k8s module support
 Install with `ansible-galaxy`:
 
 ----
-ansible-galaxy install git+https://github.com/redhat-gpte-devopsautomation/k8s_config.git,0.1.5
+ansible-galaxy install git+https://github.com/redhat-gpte-devopsautomation/k8s_config.git,0.1.6
 ----
 
 == Role Variables
