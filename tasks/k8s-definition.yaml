@@ -1,0 +1,8 @@
+---
+- name: >-
+    {{ _k8s_cluster_name }}
+    {{ _k8s_resources_item.name|default('resource') }} definitions
+    {%- if _k8s_namespace_name|default('') != '' %} in {{ _k8s_namespace_name }}{% endif -%}
+  include_tasks: k8s-resources.yaml
+  vars:
+    _k8s_resources: "{{ query('k8s_resource_definitions', _k8s_resources_item) }}"

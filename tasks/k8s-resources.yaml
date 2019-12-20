@@ -1,0 +1,26 @@
+---
+- name: >-
+    {{ _k8s_cluster_name }}
+    {{ _k8s_resources_item.name|default('resources') }}
+    {%- if _k8s_namespace_name|default('') != '' %} in {{ _k8s_namespace_name }}{% endif -%}
+  k8s_config:
+    apply: True
+    api: "{{ _k8s_cluster_api }}"
+    definition: "{{ _k8s_resource }}"
+  loop: "{{ range(0, _k8s_resources|length) | list }}"
+  loop_control:
+    loop_var: _k8s_resources_idx
+    label: >-
+      {{ _k8s_resource.kind }}({{ _k8s_resource.apiVersion }})
+      {{ _k8s_resource.metadata.name }}
+      {%- if 'namespace' in _k8s_resource.metadata %}
+      in {{ _k8s_resource.metadata.namespace }}
+      {%- endif -%}
+  vars:
+    _k8s_resource: >-
+      {% if _k8s_namespace_name|default('') != '' -%}
+      {{ _k8s_resources[_k8s_resources_idx]
+       | combine({'metadata':{'namespace': _k8s_namespace_name}}, recursive=True) }}
+      {%- else -%}
+      {{ _k8s_resources[_k8s_resources_idx] }}
+      {%- endif %}

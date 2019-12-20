@@ -1,5 +1,7 @@
 ---
-- name: Process OpenShift template
+- name: >-
+    {{ _k8s_cluster_name }} process
+    {{ _k8s_resources_item.name|default('OpenShift Template') }}
   command: >-
     {{ oc_cmd }} process
     {% if _k8s_cluster_api.api_key != None %}--token=_k8s_cluster_api.api_key{% endif %}
@@ -36,8 +38,15 @@
   check_mode: false
   register: _k8s_process_openshift_template
 
-- name: "{{ _k8s_cluster_name }} process OpenShift template resources"
-  include_tasks: k8s-resources-definition.yaml
+- name: >-
+    {{ _k8s_cluster_name }} process
+    {{ _k8s_resources_item.name }} resources
+  include_tasks: k8s-definition.yaml
   vars:
     _k8s_resources_item:
       definition: "{{ _k8s_process_openshift_template.stdout | from_yaml }}"
+      name: >-
+        {{ _k8s_namespace_resources_item.name
+         | default(_k8s_cluster_resources_item.name)
+         | default('resource')
+        }}
