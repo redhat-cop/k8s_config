@@ -65,10 +65,10 @@ result:
   returned: success
   type: complex
   contains:
-    api_version:
-      description: The versioned schema of this representation of an object.
+    resource:
+      description: The patched resource.
       returned: success
-      type: str
+      type: complex
     kind:
       description: Represents the REST resource this object represents.
       returned: success

@@ -1,0 +1,134 @@
+---
+k8s_api_validate_certs: false
+k8s_resources:
+- definition:
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: k8s-config-test-admin00
+
+k8s_namespaces:
+  k8s-config-test-admin01:
+    resources:
+    - name: Create configmap-from-definition
+      action: create
+      definition:
+        apiVersion: v1
+        kind: ConfigMap
+        metadata:
+          name: configmap-from-definition
+        data:
+          foo: bar
+
+    - name: Add key to configmap-from-definition with merge
+      action: merge
+      definition:
+        apiVersion: v1
+        kind: ConfigMap
+        metadata:
+          name: configmap-from-definition
+        data:
+          foo-too: bar
+
+    - name: Add key to configmap-from-definition with strategic-merge
+      action: strategic-merge
+      definition:
+        apiVersion: v1
+        kind: ConfigMap
+        metadata:
+          name: configmap-from-definition
+        data:
+          foo-three: bar
+
+    - file: configmap.yaml
+
+    - openshift_template:
+        file: openshift-template.yaml
+        parameters:
+          NAME: configmap-from-openshift-template
+          FOO: bar
+
+    - name: Create configmap from template
+      action: create
+      template:
+        file: configmap.yaml.j2
+        vars:
+          name: configmap-from-template
+          foo: bar
+
+    - name: Check that re-create does not change
+      action: create
+      template:
+        file: configmap.yaml.j2
+        vars:
+          name: configmap-from-template
+          foo: boo
+
+    - name: Create configmap-replace
+      action: replace
+      definition:
+        apiVersion: v1
+        kind: ConfigMap
+        metadata:
+          name: configmap-replace
+        data:
+          foo: boo
+
+    - name: Replace configmap-replace
+      action: replace
+      definition:
+        apiVersion: v1
+        kind: ConfigMap
+        metadata:
+          name: configmap-replace
+        data:
+          foo: bar
+
+    - name: Create configmap-apply
+      action: apply
+      definition:
+        apiVersion: v1
+        kind: ConfigMap
+        metadata:
+          name: configmap-apply
+        data:
+          boo: bar
+
+    - name: Replace configmap-apply
+      action: apply
+      definition:
+        apiVersion: v1
+        kind: ConfigMap
+        metadata:
+          name: configmap-apply
+        data:
+          foo: bar
+
+    - name: Define configmap-patch
+      action: replace
+      definition:
+        apiVersion: v1
+        kind: ConfigMap
+        metadata:
+          name: configmap-patch
+        data:
+          boo: boo
+          foo: boo
+
+    - name: Patch configmap-patch
+      json_patch:
+        api_version: v1
+        kind: ConfigMap
+        name: configmap-patch
+        patch:
+        - op: add
+          path: /data/foo
+          value: bar
+        - op: remove
+          path: /data/boo
+
+  k8s-config-test-admin02:
+    resources:
+    - openshift_template:
+        url: https://raw.githubusercontent.com/sclorg/cakephp-ex/master/openshift/templates/cakephp.json
+    - url: https://raw.githubusercontent.com/redhat-gpte-devopsautomation/k8s_config/master/tests/files/configmap.yaml

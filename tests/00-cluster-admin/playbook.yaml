@@ -1,0 +1,141 @@
+---
+- hosts: localhost
+  gather_facts: false
+  roles:
+  - k8s_config
+  tasks:
+  - name: Get configmap-from-definition
+    k8s_info:
+      api_version: v1
+      kind: ConfigMap
+      name: configmap-from-definition
+      namespace: k8s-config-test-admin01
+    register: r_get_configmap_from_definition
+    failed_when: not r_get_configmap_from_definition.resources
+
+  - name: Check configmap-from-definition
+    fail:
+      msg: "{{ item.msg }}"
+    when: lookup('test', item.test)
+    loop:
+    - msg: ConfigMap configmap-from-definition missing data.foo
+      test: "'foo' not in r_get_configmap_from_definition.resources[0].data"
+    - msg: ConfigMap configmap-from-definition data.foo != 'bar'
+      test: r_get_configmap_from_definition.resources[0].data.foo != 'bar'
+    - msg: ConfigMap configmap-from-definition missing data['foo-too']
+      test: "'foo-too' not in r_get_configmap_from_definition.resources[0].data"
+    - msg: ConfigMap configmap-from-definition data['foo-too'] != 'bar'
+      test: r_get_configmap_from_definition.resources[0].data['foo-too'] != 'bar'
+    - msg: ConfigMap configmap-from-definition missing data['foo-three']
+      test: "'foo-three' not in r_get_configmap_from_definition.resources[0].data"
+    - msg: ConfigMap configmap-from-definition data['foo-three'] != 'bar'
+      test: r_get_configmap_from_definition.resources[0].data['foo-three'] != 'bar'
+    - msg: kubectl.kubernetes.io/last-applied-configuration annotition present in configmap-from-definition
+      test: "'kubectl.kubernetes.io/last-applied-configuration' in r_get_configmap_from_definition.resources[0].metadata.annotations|default({})"
+    loop_control:
+      label: "{{ item.msg }}"
+
+  - name: Get configmap-from-file
+    k8s_info:
+      api_version: v1
+      kind: ConfigMap
+      name: configmap-from-definition
+      namespace: k8s-config-test-admin01
+    register: r_get_configmap_from_definition
+    failed_when: not r_get_configmap_from_definition.resources
+
+  - name: Get configmap-from-template
+    k8s_info:
+      api_version: v1
+      kind: ConfigMap
+      name: configmap-from-template
+      namespace: k8s-config-test-admin01
+    register: r_get_configmap_from_template
+    failed_when: not r_get_configmap_from_template.resources
+
+  - name: Check configmap-from-template
+    fail:
+      msg: "{{ item.msg }}"
+    when: lookup('test', item.test)
+    loop:
+    - msg: ConfigMap configmap-from-template missing data.foo
+      test: "'foo' not in r_get_configmap_from_template.resources[0].data"
+    - msg: ConfigMap configmap-from-template data.foo != 'bar'
+      test: r_get_configmap_from_template.resources[0].data.foo != 'bar'
+    - msg: kubectl.kubernetes.io/last-applied-configuration annotition present in configmap-from-definition
+      test: "'kubectl.kubernetes.io/last-applied-configuration' in r_get_configmap_from_template.resources[0].metadata.annotations|default({})"
+    loop_control:
+      label: "{{ item.msg }}"
+
+  - name: Get configmap-replace
+    k8s_info:
+      api_version: v1
+      kind: ConfigMap
+      name: configmap-replace
+      namespace: k8s-config-test-admin01
+    register: r_get_configmap_replace
+    failed_when: not r_get_configmap_replace.resources
+
+  - name: Check configmap-replace
+    fail:
+      msg: "{{ item.msg }}"
+    when: lookup('test', item.test)
+    loop:
+    - msg: ConfigMap configmap-replace missing data.foo
+      test: "'foo' not in r_get_configmap_replace.resources[0].data"
+    - msg: ConfigMap configmap-replace data.foo != 'bar'
+      test: r_get_configmap_replace.resources[0].data.foo != 'bar'
+    - msg: kubectl.kubernetes.io/last-applied-configuration annotition present in configmap-replace
+      test: "'kubectl.kubernetes.io/last-applied-configuration' in r_get_configmap_replace.resources[0].metadata.annotations|default({})"
+    loop_control:
+      label: "{{ item.msg }}"
+
+  - name: Get configmap-apply
+    k8s_info:
+      api_version: v1
+      kind: ConfigMap
+      name: configmap-apply
+      namespace: k8s-config-test-admin01
+    register: r_get_configmap_apply
+    failed_when: not r_get_configmap_apply.resources
+
+  - name: Check configmap-apply
+    fail:
+      msg: "{{ item.msg }}"
+    when: lookup('test', item.test)
+    loop:
+    - msg: ConfigMap configmap-apply missing data.foo
+      test: "'foo' not in r_get_configmap_apply.resources[0].data"
+    - msg: ConfigMap configmap-apply data.foo != 'bar'
+      test: r_get_configmap_apply.resources[0].data.foo != 'bar'
+    - msg: ConfigMap configmap-apply has data.boo
+      test: "'boo' in r_get_configmap_apply.resources[0].data"
+    - msg: kubectl.kubernetes.io/last-applied-configuration annotition not present in configmap-apply
+      test: "'kubectl.kubernetes.io/last-applied-configuration' not in r_get_configmap_apply.resources[0].metadata.annotations|default({})"
+    loop_control:
+      label: "{{ item.msg }}"
+
+  - name: Get configmap-patch
+    k8s_info:
+      api_version: v1
+      kind: ConfigMap
+      name: configmap-patch
+      namespace: k8s-config-test-admin01
+    register: r_get_configmap_patch
+    failed_when: not r_get_configmap_patch.resources
+
+  - name: Check configmap-patch
+    fail:
+      msg: "{{ item.msg }}"
+    when: lookup('test', item.test)
+    loop:
+    - msg: ConfigMap configmap-patch missing data.foo
+      test: "'foo' not in r_get_configmap_patch.resources[0].data"
+    - msg: ConfigMap configmap-patch data.foo != 'bar'
+      test: r_get_configmap_patch.resources[0].data.foo != 'bar'
+    - msg: ConfigMap configmap-patch has data.boo
+      test: "'boo' in r_get_configmap_patch.resources[0].data"
+    - msg: kubectl.kubernetes.io/last-patched-configuration annotition present in configmap-patch
+      test: "'kubectl.kubernetes.io/last-patched-configuration' in r_get_configmap_patch.resources[0].metadata.annotations|default({})"
+    loop_control:
+      label: "{{ item.msg }}"

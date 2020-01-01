@@ -1,0 +1,8 @@
+---
+- name: "{{ _k8s_cluster_name }} unknown resource handling!"
+  fail:
+    msg: >-
+      Unable to determine resource handling for
+      {{ _k8s_resources_item.name|default('resource') }} definitions
+      Resource items must specify "definition", "file", "json_patch", "namespace", "openshift-template", "template", or "url".
+      {{ _k8s_resources_item | to_json }}

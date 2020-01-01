@@ -7,9 +7,14 @@
   vars:
     _k8s_resources_handling: >-
       {{
+      'definition'         if 'definition'         in _k8s_cluster_resources_item else
+      'definition'         if 'file'               in _k8s_cluster_resources_item else
+      'json-patch'         if 'json_patch'         in _k8s_cluster_resources_item else
       'namespace'          if 'namespace'          in _k8s_cluster_resources_item else
       'openshift-template' if 'openshift_template' in _k8s_cluster_resources_item else
-      'definition'
+      'definition'         if 'template'           in _k8s_cluster_resources_item else
+      'definition'         if 'url'                in _k8s_cluster_resources_item else
+      'unknown'
       }}
     _k8s_resources_item: "{{ _k8s_cluster_resources_item }}"
     _k8s_namespace_name: "{{ _k8s_cluster_resources_item.namespace | default('') }}"

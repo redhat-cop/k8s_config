@@ -3,8 +3,8 @@
     {{ _k8s_cluster_name }}
     {{ _k8s_resources_item.name|default('resources') }}
     {%- if _k8s_namespace_name|default('') != '' %} in {{ _k8s_namespace_name }}{% endif -%}
-  k8s_config:
-    apply: True
+  _k8s_resource:
+    action: "{{ _k8s_resources_item.action | default('apply') }}"
     api: "{{ _k8s_cluster_api }}"
     definition: "{{ _k8s_resource }}"
   loop: "{{ range(0, _k8s_resources|length) | list }}"

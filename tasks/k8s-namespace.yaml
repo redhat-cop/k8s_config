@@ -12,8 +12,13 @@
   vars:
     _k8s_resources_handling: >-
       {{
-      'openshift-template' if 'openshift_template' in _k8s_resources_item else
-      'definition'
+      'definition'         if 'definition'         in _k8s_namespace_resources_item else
+      'definition'         if 'file'               in _k8s_namespace_resources_item else
+      'json-patch'         if 'json_patch'         in _k8s_namespace_resources_item else
+      'openshift-template' if 'openshift_template' in _k8s_namespace_resources_item else
+      'definition'         if 'template'           in _k8s_namespace_resources_item else
+      'definition'         if 'url'                in _k8s_namespace_resources_item else
+      'unknown-namespaced'
       }}
     _k8s_resources_item: "{{ _k8s_namespace_resources_item }}"
   when: >-

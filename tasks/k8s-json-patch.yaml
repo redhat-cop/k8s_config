@@ -1,0 +1,14 @@
+---
+- name: >-
+    {{ _k8s_cluster_name }}
+    {{ _k8s_resources_item.name|default('JSON patch') }}
+    {%- if _k8s_namespace_name|default('') != '' %} in {{ _k8s_namespace_name }}{% endif -%}
+  _k8s_json_patch:
+    api: "{{ _k8s_cluster_api }}"
+    api_version: "{{ json_patch.api_version }}"
+    kind: "{{ json_patch.kind }}"
+    name: "{{ json_patch.name }}"
+    namespace: "{{ _k8s_namespace_name|default('') }}"
+    patch: "{{ json_patch.patch|default([]) }}"
+  vars:
+    json_patch: "{{ _k8s_resources_item.json_patch }}"

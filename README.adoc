@@ -1,6 +1,11 @@
+:toc:
+:toc-placement!:
+
 = k8s_config
 
 Ansible role for managing Kubernetes configuration
+
+toc::[]
 
 == Requirements
 
@@ -93,18 +98,31 @@ Settings for configuration sources:
 ==== Resource Definitions:
 
 Each resource definition is given as a dictionary.
-The presence of the key `definition`, `file`, `openshift_template`, or `template` determines how resource definitions are handled.
+The presence of the key `definition`, `file`, `json_patch`, `openshift_template`, or `template` determines how resource definitions are handled.
+
+* `action` - Action to take with regard to resources when used with `definition`, `file`, `openshift_template` or `template`.
+Value may be one of:
+** `apply` - Apply resource definitions to create or update resources in manner compatible with `kubectl apply`.
+** `create` - Create resources from definition only if resources do not exist.
+** `delete` - Delete resources from definition if it exists.
+** `merge` - Patch existing resources using merge strategy.
+If resources do not exist then attempt to create from definition.
+** `replace` - Create or replace resources.
+** `strategic-merge` - Patch existing resources using strategic-merge strategy.
+Automatically fall back to `merge` if `strategic-merge` is not supported.
+If resources do not exist then attempt to create from definition.
 
 * `definition` - Direct resource definition within the Ansible variable:
 +
 ----
-definition:
-  apiVersion: v1
-  kind: ConfigMap
-  metadata:
-    name: myconfig
-  data:
-    hostname: k8s.example.com
+- name: ConfigMap for myconfig
+  definition:
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: myconfig
+    data:
+      hostname: k8s.example.com
 ----
 
 * `file` - File lookup of resources.
@@ -113,6 +131,52 @@ Multiple resource definitions can be included in a single file by including a re
 +
 ----
 file: configmap.yaml
+----
+
+* `json_patch` - https://jsonpatch.com/[JSON patch] to apply to resource.
+Must specify `api_version`, `kind`, `name`, and `patch`.
+The patch must be a valid JSON patch definition with the following adjustments to support idempotent patching of kubernetes resources:
+--
+** `remove` operations are silently ignored when the path is not found in the resource definition.
+** `add` operations are silently ignored when the path is found with the specified value.
+** `add` operations may specify `replace: false` to produce an error if the path is set and is different from value.
+** `test` operations may specify `state` to define how the test value should be evaluated:
+*** `equal` - the path value must equal the specified value, the default behavior.
+*** `unequal` - the path value must not equal the specified value.
+*** `present` - the path must be present with any value.
+*** `absent` - the path must not be found in the resource.
+** `test` operations may specify `operations` as a list of operations to conditionally process if the test condition is true.
+If a test specifies `operations` then a failed test does not produce an error.
+** List indexes may be given with a simple key query of the form `[?KEY=='VALUE']` to support for various kubernetes use cases where lists have name keys.
+The list index query resolves to `-` (end of list) if it fails to match when adding a value to a list.
+--
++
+----
+- name: Set ENV_LEVEL to dev for myapp
+  json_patch:
+    api_version: apps/v1
+    kind: Deployment
+    name: myapp
+    patch:
+    - op: add
+      path: /spec/template/spec/containers/[?name=='myapp']/env/[?name=='ENV_LEVEL']/value
+      value: dev
+----
++
+----
+- name: Set TEST if ENV_LEVEL is test
+  json_patch:
+    api_version: apps/v1
+    kind: Deployment
+    name: myapp
+    patch:
+    - op: test
+      path: /spec/template/spec/containers/[?name=='myapp']/env/[?name=='ENV_LEVEL']/value
+      value: test
+      operations:
+      - op: add
+        path: /spec/template/spec/containers/[?name=='myapp']/env/[?name=='TEST']/value
+        value: 'true'
 ----
 
 * `openshift_template` - OpenShift template file and parameters.
