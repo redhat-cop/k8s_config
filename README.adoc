@@ -18,7 +18,13 @@ k8s module support
 Install with `ansible-galaxy`:
 
 ----
-ansible-galaxy install git+https://github.com/redhat-cop/k8s_config.git,0.2.0
+ansible-galaxy install redhat-cop.k8s_config
+----
+
+Or install directly from GitHub:
+
+----
+ansible-galaxy install git+https://github.com/redhat-cop/k8s_config.git
 ----
 
 == Role Variables
