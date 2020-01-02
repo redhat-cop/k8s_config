@@ -104,7 +104,11 @@ Settings for configuration sources:
 ==== Resource Definitions:
 
 Each resource definition is given as a dictionary.
-The presence of the key `definition`, `file`, `json_patch`, `openshift_template`, or `template` determines how resource definitions are handled.
+The presence of the key `definition`, `file`, `json_patch`, `namespace`, `openshift_template`, or `template` determines how resource definitions are handled.
+
+* `namespace` - Namespace specified within `k8s_resources` to provide ordering for namespace creation and resource provisioning.
+
+* `resources` - Included with `namespace`, list of resources to provision into this namespace.
 
 * `action` - Action to take with regard to resources when used with `definition`, `file`, `openshift_template` or `template`.
 Value may be one of:
@@ -117,6 +121,9 @@ If resources do not exist then attempt to create from definition.
 ** `strategic-merge` - Patch existing resources using strategic-merge strategy.
 Automatically fall back to `merge` if `strategic-merge` is not supported.
 If resources do not exist then attempt to create from definition.
+
+* `when` - All resources support use of when conditions to control processing.
+For example, a template may be conditionally processed depending on variables being set.
 
 * `definition` - Direct resource definition within the Ansible variable:
 +
@@ -139,9 +146,35 @@ Multiple resource definitions can be included in a single file by including a re
 file: configmap.yaml
 ----
 
+* `openshift_template` - OpenShift template file and parameters.
+The file can be specified with `file` or `url`.
+A dictionary, `parameters` is used for template parameters.
+The `oc` command must be installed to process the template on the host.
++
+----
+openshift_template:
+  file: openshift-template.yaml
+  parameters:
+    NAME: myconfig
+    HOSTNAME: k8s.example.com
+----
+
+* `template` - Ansible Jinja2 template with file and variables.
+The template file must be a file name which can be found in the Ansible template search path.
+Variables provided are in addition to standard Ansible variables such as inventory host variables.
++
+----
+template:
+  file: configmap.yaml.j2
+  vars:
+    name: myconfig
+    hostname: k8s.example.com
+----
+
 * `json_patch` - https://jsonpatch.com/[JSON patch] to apply to resource.
 Must specify `api_version`, `kind`, `name`, and `patch`.
 The patch must be a valid JSON patch definition with the following adjustments to support idempotent patching of kubernetes resources:
++
 --
 ** `remove` operations are silently ignored when the path is not found in the resource definition.
 ** `add` operations are silently ignored when the path is found with the specified value.
@@ -185,34 +218,6 @@ The list index query resolves to `-` (end of list) if it fails to match when add
         value: 'true'
 ----
 
-* `openshift_template` - OpenShift template file and parameters.
-The file can be specified with `file` or `url`.
-A dictionary, `parameters` is used for template parameters.
-The `oc` command must be installed to process the template on the host.
-+
-----
-openshift_template:
-  file: openshift-template.yaml
-  parameters:
-    NAME: myconfig
-    HOSTNAME: k8s.example.com
-----
-
-* `template` - Ansible Jinja2 template with file and variables.
-The template file must be a file name which can be found in the Ansible template search path.
-Variables provided are in addition to standard Ansible variables such as inventory host variables.
-+
-----
-template:
-  file: configmap.yaml.j2
-  vars:
-    name: myconfig
-    hostname: k8s.example.com
-----
-
-* `when` - All resources support use of when conditions to control processing.
-For example, a template may be conditionally processed depending on variables being set.
-
 === Multi-cluster Support
 
 The variable `k8s_clusters` can be set to configure multiple kubernetes clusters with a single role execution.
@@ -238,34 +243,114 @@ Each cluster dictionary may specify:
 * `resources` - Cluster override for `k8s_resources`
 
 
-== Example Playbook
+== Example Playbooks
+
+=== Configuration through variables:
+
+Playbook:
 
 ----
 - hosts: localhost
   gather_facts: false
-  vars:
-    k8s_config_sources:
-    # Load config from k8s-config adjecent to playbook directory
-    - name: local
-      base_path: "{{ playbook_dir }}/k8s-config"
-
-    # Load config from private git repository
-    - name: private
-      git:
-        repo: git@github.com:example/k8s-config-private.git
-        key_file: "{{ deploy_key }}"
-      when: deploy_key != ''
-
-    # ... and from public git repository
-    - name: example
-      git:
-        repo: https://github.com/example/k8s-config.git
-
-    # Override deploy_key with extra vars to use private repo
-    deploy_key: ''
-
   roles:
   - role: k8s_config
+    vars:
+      k8s_resources:
+      - namespace: my-app
+        resources:
+        - name: App Config
+          definition:
+            apiVersion: v1
+            kind: ConfigMap
+            metadata:
+              name: app-config
+            data:
+              envlevel: dev
+----
+
+=== Local Configuration
+
+Playbook:
+
+----
+- hosts: localhost
+  gather_facts: false
+  roles:
+  - role: k8s_config
+    vars:
+      k8s_config_sources:
+      - name: local
+        base_path "{{ playbook_dir }}/k8s-config"
+      k8s_config_environment_level: dev
+----
+
+`k8s-config/main.yaml`
+
+----
+k8s_config_search_path:
+- env/{{ k8s_config_environment_level }}
+- common
+----
+
+`k8s-config/env/dev/vars.yaml`
+
+----
+myapp_image: example.com/myapp:latest
+myapp_image_pull_policy: Always
+----
+
+`k8s-config/common/vars.yaml`
+
+----
+myapp_image: example.com/myapp:v0.1.2
+myapp_image_pull_policy: IfNotPresent
+
+k8s_resources:
+- namespace: my-app
+  resources:
+  - name: App Config
+    template:
+      file: my-app-config.yaml.j2
+----
+
+`k8s-config/common/templates/app-config.yaml.j2`
+
+----
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  envlevel: {{ k8s_config_environment_level | to_json }}
+----
+
+=== Multiple Configuration Sources
+
+----
+- hosts: localhost
+  gather_facts: false
+  roles:
+  - role: k8s_config
+    vars:
+      k8s_config_sources:
+      # Load config from k8s-config adjecent to playbook directory
+      - name: local
+        base_path: "{{ playbook_dir }}/k8s-config"
+
+      # Load config from private git repository
+      - name: private
+        git:
+          repo: git@github.com:example/k8s-config-private.git
+          key_file: "{{ deploy_key }}"
+        when: deploy_key != ''
+
+      # ... and from public git repository
+      - name: example
+        git:
+          repo: https://github.com/example/k8s-config.git
+
+      # Override deploy_key with extra vars to use private repo
+      deploy_key: ''
 ----
 
 == License
