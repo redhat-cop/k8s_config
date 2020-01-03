@@ -7,7 +7,7 @@ k8s_kubeconfig: null
 # Default API key token. May be overridden by setting api.token within k8s_clusters
 k8s_api_token: null
 k8s_api_url: null
-k8s_api_validate_certs: true
+k8s_api_validate_certs: null
 
 # Optional password for authentication
 k8s_api_username: null
