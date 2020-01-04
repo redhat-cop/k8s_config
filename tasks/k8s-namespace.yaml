@@ -1,6 +1,6 @@
 ---
 - name: "{{ _k8s_cluster_name }} {{ _k8s_namespace_name }} namespace"
-  k8s_namespace:
+  _k8s_namespace:
     name: "{{ _k8s_namespace_name }}"
     api: "{{ _k8s_cluster_api }}"
 

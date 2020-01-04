@@ -41,7 +41,9 @@ display = Display()
 
 class LookupModule(LookupBase):
     def from_definition(self, definition):
-        if definition['kind'] == 'List' and definition['apiVersion'] == 'v1':
+        if 'kind' not in definition:
+            raise AnsibleError('Resource definition has no kind {0}'.format(definition))
+        elif definition['kind'] == 'List' and definition['apiVersion'] == 'v1':
             return definition.get('items', [])
         else:
             return [definition]
@@ -88,6 +90,7 @@ class LookupModule(LookupBase):
     def from_url(self, url):
         try:
             resp = requests.get(url)
+            resp.raise_for_status()
         except Exception as err:
             raise AnsibleError('Failed to fetch {}: {}'.format(url, err))
         ret = []
