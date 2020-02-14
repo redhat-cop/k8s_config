@@ -15,6 +15,10 @@ class ActionModule(ActionBase):
         result = super(ActionModule, self).run(tmp, task_vars)
         del tmp  # tmp no longer has any effect
 
+        output_file = task_vars.get('k8s_config_output_file')
+        if output_file:
+            raise Exception(output_file)
+
         k8s_api = self._task.args.get('api', {})
         k8s_module_args = dict((k, v) for k, v in self._task.args.items() if k != 'api')
         k8s_module_args.update(k8s_api)
