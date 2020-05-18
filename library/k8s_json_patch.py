@@ -129,6 +129,10 @@ def resolve_path(obj, path):
         key = unmatched_path.pop(0)
         context = value
         value = None
+        if key == '-' and isinstance(context, list):
+            unmatched_path.insert(0, str(len(context)))
+            break
+
         if isinstance(context, dict):
             if key in context:
                 matched_path.append(key)
