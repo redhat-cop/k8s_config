@@ -131,4 +131,4 @@ k8s_namespaces:
     resources:
     - openshift_template:
         url: https://raw.githubusercontent.com/sclorg/cakephp-ex/master/openshift/templates/cakephp.json
-    - url: https://raw.githubusercontent.com/redhat-cop/k8s_config/master/tests/files/configmap.yaml
+    - url: https://raw.githubusercontent.com/redhat-cop/k8s_config/master/tests/00-cluster-admin/files/configmap.yaml

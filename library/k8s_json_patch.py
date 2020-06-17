@@ -166,7 +166,10 @@ def resolve_path(obj, path):
             if n != None:
                 matched_path.append(str(n))
                 key = n
-                continue
+                if unmatched_path:
+                    continue
+                else:
+                    break
             else:
                 unmatched_path.insert(0, key)
                 break
