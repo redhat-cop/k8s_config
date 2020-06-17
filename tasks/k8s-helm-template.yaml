@@ -1,0 +1,26 @@
+---
+- name: >-
+    {{ _k8s_cluster_name }} process
+    {{ _k8s_resources_item.name|default('Helm Template') }}
+  command: >-
+    {{ helm_cmd }} template
+    {{ lookup('first_found', {'paths': _helm_paths, 'files': _k8s_resources_item.helm_template.dir}) }}
+  vars:
+    _helm_paths: >-
+      {{ k8s_config_search_path | map('regex_replace', '$', '/helm') | list }}
+  changed_when: false
+  check_mode: false
+  register: _k8s_process_helm_template
+
+- name: >-
+    {{ _k8s_cluster_name }} process
+    {{ _k8s_resources_item.name }} resources
+  include_tasks: k8s-definition.yaml
+  vars:
+    _k8s_resources_item:
+      definition: "{{ _k8s_process_helm_template.stdout | from_yaml_all | list }}"
+      name: >-
+        {{ _k8s_namespace_resources_item.name
+         | default(_k8s_cluster_resources_item.name)
+         | default('resource')
+        }}

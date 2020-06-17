@@ -38,4 +38,5 @@ k8s_config_cache_dir: ''
 # Explicit search path for finding files and templates
 k8s_config_search_path: []
 
+helm_cmd: helm
 oc_cmd: oc
