@@ -1,16 +1,46 @@
 ---
 - name: >-
+    {{ _k8s_cluster_name }} create values temp file for
+    {{ _k8s_resources_item.name|default('Helm Template') }}
+  tempfile:
+    state: file
+  register: r_helm_values_tmp
+  when: _k8s_resources_item.helm_template.get('values', {})
+  changed_when: false
+
+- name: >-
+    {{ _k8s_cluster_name }} write values file for
+    {{ _k8s_resources_item.name|default('Helm Template') }}
+  copy:
+    content: "{{ _k8s_resources_item.helm_template.get('values', {}) | to_json }}"
+    dest: "{{ r_helm_values_tmp.path }}"
+  when: _k8s_resources_item.helm_template.get('values', {})
+  changed_when: false
+
+- name: >-
     {{ _k8s_cluster_name }} process
     {{ _k8s_resources_item.name|default('Helm Template') }}
   command: >-
     {{ helm_cmd }} template
     {{ lookup('first_found', {'paths': _helm_paths, 'files': _k8s_resources_item.helm_template.dir}) }}
+    {% if _k8s_resources_item.helm_template.get('values', {}) %}
+    --values {{ r_helm_values_tmp.path | quote }}
+    {% endif %}
   vars:
     _helm_paths: >-
       {{ k8s_config_search_path | map('regex_replace', '$', '/helm') | list }}
   changed_when: false
   check_mode: false
   register: _k8s_process_helm_template
+
+- name: >-
+    {{ _k8s_cluster_name }} remove values file for
+    {{ _k8s_resources_item.name|default('Helm Template') }}
+  file:
+    state: absent
+    path: "{{ r_helm_values_tmp.path }}"
+  when: _k8s_resources_item.helm_template.get('values', {})
+  changed_when: false
 
 - name: >-
     {{ _k8s_cluster_name }} process

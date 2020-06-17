@@ -150,12 +150,15 @@ file: configmap.yaml
 Helm template can be specified with `dir`.
 The directory will be searched for under a `helm` subdirectory within the `k8s_config_search_path`.
 Future release may add support for fetching charts from chart repositories or version control.
-Support for passing helm values is also planned for a future release.
+Values for the helm chart may be passed as structured data with `values`.
 The `helm` command must be installed to process the template on the host.
 +
 ----
 helm_template:
   dir: some-app
+  values:
+    deployment:
+      replicas: 4
 ----
 
 * `openshift_template` - OpenShift template file and parameters.
