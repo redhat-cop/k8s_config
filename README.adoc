@@ -104,13 +104,13 @@ Settings for configuration sources:
 ==== Resource Definitions:
 
 Each resource definition is given as a dictionary.
-The presence of the key `definition`, `file`, `json_patch`, `namespace`, `openshift_template`, or `template` determines how resource definitions are handled.
+The presence of the key `definition`, `file`, `helm_template`, `json_patch`, `namespace`, `openshift_template`, or `template` determines how resource definitions are handled.
 
 * `namespace` - Namespace specified within `k8s_resources` to provide ordering for namespace creation and resource provisioning.
 
 * `resources` - Included with `namespace`, list of resources to provision into this namespace.
 
-* `action` - Action to take with regard to resources when used with `definition`, `file`, `openshift_template` or `template`.
+* `action` - Action to take with regard to resources when used with `definition`, `file`, `helm_template`, `openshift_template` or `template`.
 Value may be one of:
 ** `apply` - Apply resource definitions to create or update resources in manner compatible with `kubectl apply`.
 ** `create` - Create resources from definition only if resources do not exist.
@@ -144,6 +144,21 @@ Multiple resource definitions can be included in a single file by including a re
 +
 ----
 file: configmap.yaml
+----
+
+* `helm_template` - Helm template processing.
+Helm template can be specified with `dir`.
+The directory will be searched for under a `helm` subdirectory within the `k8s_config_search_path`.
+Future release may add support for fetching charts from chart repositories or version control.
+Values for the helm chart may be passed as structured data with `values`.
+The `helm` command must be installed to process the template on the host.
++
+----
+helm_template:
+  dir: some-app
+  values:
+    deployment:
+      replicas: 4
 ----
 
 * `openshift_template` - OpenShift template file and parameters.

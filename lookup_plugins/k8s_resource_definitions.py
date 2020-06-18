@@ -41,7 +41,9 @@ display = Display()
 
 class LookupModule(LookupBase):
     def from_definition(self, definition):
-        if definition['kind'] == 'List' and definition['apiVersion'] == 'v1':
+        if isinstance(definition, list):
+            return definition
+        elif definition['kind'] == 'List' and definition['apiVersion'] == 'v1':
             return definition.get('items', [])
         else:
             return [definition]
