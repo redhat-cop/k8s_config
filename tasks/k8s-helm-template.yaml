@@ -15,6 +15,7 @@
     module_args: "{{ _k8s_resources_item.helm_template.git }}"
   when: >-
     'git' in _k8s_resources_item.helm_template
+  changed_when: false
 
 - name: >-
     {{ _k8s_cluster_name }} write values file for
