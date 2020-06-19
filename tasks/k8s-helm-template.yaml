@@ -1,19 +1,27 @@
 ---
 - name: >-
-    {{ _k8s_cluster_name }} create values temp file for
+    {{ _k8s_cluster_name }} create temp dir for
     {{ _k8s_resources_item.name|default('Helm Template') }}
   tempfile:
-    state: file
-  register: r_helm_values_tmp
-  when: _k8s_resources_item.helm_template.get('values', {})
+    state: directory
+  register: r_helm_tmp
   changed_when: false
+
+- name: >-
+    {{ _k8s_cluster_name }} git clone helm source
+    {{ _k8s_resources_item.name|default('Helm Template') }}
+  k8s_git_clone:
+    dest: "{{ r_helm_tmp.path }}/source"
+    module_args: "{{ _k8s_resources_item.helm_template.git }}"
+  when: >-
+    'git' in _k8s_resources_item.helm_template
 
 - name: >-
     {{ _k8s_cluster_name }} write values file for
     {{ _k8s_resources_item.name|default('Helm Template') }}
   copy:
     content: "{{ _k8s_resources_item.helm_template.get('values', {}) | to_json }}"
-    dest: "{{ r_helm_values_tmp.path }}"
+    dest: "{{ r_helm_tmp.path }}/values.json"
   when: _k8s_resources_item.helm_template.get('values', {})
   changed_when: false
 
@@ -22,9 +30,13 @@
     {{ _k8s_resources_item.name|default('Helm Template') }}
   command: >-
     {{ helm_cmd }} template
-    {{ lookup('first_found', {'paths': _helm_paths, 'files': _k8s_resources_item.helm_template.dir}) }}
+    {% if 'git' in _k8s_resources_item.helm_template %}
+    {{ (r_helm_tmp.path ~ '/source/' ~ _k8s_resources_item.helm_template.dir | default('')) | quote }}
+    {% else %}
+    {{ lookup('first_found', {'paths': _helm_paths, 'files': _k8s_resources_item.helm_template.dir}) | quote }}
+    {% endif %}
     {% if _k8s_resources_item.helm_template.get('values', {}) %}
-    --values {{ r_helm_values_tmp.path | quote }}
+    --values {{ (r_helm_tmp.path ~ '/values.json') | quote }}
     {% endif %}
   vars:
     _helm_paths: >-
@@ -34,11 +46,11 @@
   register: _k8s_process_helm_template
 
 - name: >-
-    {{ _k8s_cluster_name }} remove values file for
+    {{ _k8s_cluster_name }} remove temp dir for
     {{ _k8s_resources_item.name|default('Helm Template') }}
   file:
     state: absent
-    path: "{{ r_helm_values_tmp.path }}"
+    path: "{{ r_helm_tmp.path }}"
   when: _k8s_resources_item.helm_template.get('values', {})
   changed_when: false
 
