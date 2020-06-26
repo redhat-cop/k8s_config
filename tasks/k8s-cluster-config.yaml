@@ -4,6 +4,11 @@
   loop: "{{ _k8s_cluster_resources }}"
   loop_control:
     loop_var: _k8s_cluster_resources_item
+    label: >-
+      {{ _k8s_cluster_resources_item.name
+       | default(_k8s_cluster_resources_item.namespace)
+       | default(_k8s_resources_handling)
+      }}
   vars:
     _k8s_resources_handling: >-
       {{

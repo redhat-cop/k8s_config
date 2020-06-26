@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
 import copy
+import os
+import sys
 import unittest
 
-import sys
-sys.path.append('../library')
+sys.path.append(os.path.join(os.path.dirname(__file__), '../library'))
 
 import k8s_json_patch
 
