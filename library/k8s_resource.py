@@ -341,7 +341,10 @@ class KubernetesResourceModule(KubernetesAnsibleModule):
         if self.action == 'apply':
             return self.perform_apply(resource, definition, existing)
         elif self.action == 'delete':
-            return self.perform_delete(resource, existing)
+            if existing:
+                return self.perform_delete(resource, existing)
+            else:
+                return None, False
         elif self.action == 'create':
             return self.perform_create(resource, definition, existing)
         elif not existing:
@@ -401,9 +404,9 @@ class KubernetesResourceModule(KubernetesAnsibleModule):
             )
 
     def perform_delete(self, resource, existing):
-        params = dict(name=existing.name)
+        params = dict(name=existing.metadata.name)
         if hasattr(existing, 'namespace'):
-            params['namespace'] = existing.namespace
+            params['namespace'] = existing.metadata.namespace
         if not existing:
             return None, False
         if self.check_mode:
