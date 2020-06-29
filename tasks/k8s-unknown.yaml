@@ -4,5 +4,5 @@
     msg: >-
       Unable to determine resource handling for
       {{ _k8s_resources_item.name|default('resource') }} definitions
-      Resource items must specify "definition", "file", "json_patch", "namespace", "openshift-template", "template", or "url".
+      Resource items must specify "definition", "file", "helm_template", "json_patch", "namespace", "openshift-template", "template", or "url".
       {{ _k8s_resources_item | to_json }}
