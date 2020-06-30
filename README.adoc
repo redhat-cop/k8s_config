@@ -82,6 +82,7 @@ Settings for configuration sources:
 * `git` -
   Dictionary of parameters passed to the `git` module to clone the git repository.
   This should at least include `repo`.
+  `key_content` is also supported which will dynamically write a temporary file for the SSH key and pass the path as `key_file`.
 
 * `when` -
   Optional condition for loading configuration source.
