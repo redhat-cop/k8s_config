@@ -30,20 +30,11 @@ class ActionModule(ActionBase):
         # Write ssh key to temp file if passed as key_content
         tmp_key_file = None
         if git_module_args.get('key_content'):
-            r_tempfile = self._execute_module(
-                module_name='tempfile',
-                module_args=dict(state='file'),
-                task_vars=task_vars,
-            )
-            tmp_key_file = r_tempfile['path']
-            self._execute_module(
-                module_name='copy',
-                module_args=dict(
-                    dest=tmp_key_file,
-                    content=git_module_args['key_content'],
-                ),
-                task_vars=task_vars,
-            )
+            tmp_dir = self._make_tmp_path()
+            tmp_key_file = self._connection._shell.join_path(tmp_dir, 'key_file')
+            self._transfer_data(tmp_key_file, git_module_args['key_content'])
+            self._fixup_perms2((tmp_dir, tmp_key_file))
+            self._remote_chmod((tmp_key_file,), mode='go=')
             git_module_args['key_file'] = tmp_key_file
             del git_module_args['key_content']
 
