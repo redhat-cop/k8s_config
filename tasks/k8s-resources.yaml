@@ -4,7 +4,11 @@
     {{ _k8s_resources_item.name|default('resources') }}
     {%- if _k8s_namespace_name|default('') != '' %} in {{ _k8s_namespace_name }}{% endif -%}
   _k8s_resource:
-    action: "{{ _k8s_resources_item.action | default('apply') }}"
+    action: >-
+      {{ k8s_config_action_override
+       | default(_k8s_resources_item.action)
+       | default(k8s_config_action_default)
+      }}
     api: "{{ _k8s_cluster_api }}"
     definition: "{{ _k8s_resource }}"
   loop: "{{ range(0, _k8s_resources|length) | list }}"

@@ -112,6 +112,8 @@ The presence of the key `definition`, `file`, `helm_template`, `json_patch`, `na
 * `resources` - Included with `namespace`, list of resources to provision into this namespace.
 
 * `action` - Action to take with regard to resources when used with `definition`, `file`, `helm_template`, `openshift_template` or `template`.
+If `k8s_config_action_override` is defined then that value is used instead.
+If no `action` is specified then `k8s_config_action_default` is used, which defaults to `apply`.
 Value may be one of:
 ** `apply` - Apply resource definitions to create or update resources in manner compatible with `kubectl apply`.
 ** `create` - Create resources from definition only if resources do not exist.
