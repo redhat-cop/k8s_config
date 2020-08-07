@@ -46,9 +46,9 @@
     _k8s_cluster_name: >-
       {{ _k8s_cluster.name | default('k8s', True) }}
     _k8s_cluster_namespaces: >-
-      {{ k8s_cluster.namespaces | default(k8s_namespaces) }}
+      {{ _k8s_cluster.namespaces | default(k8s_namespaces) }}
     _k8s_cluster_resources: >-
-      {{ k8s_cluster.resources | default(k8s_resources) }}
+      {{ _k8s_cluster.resources | default(k8s_resources) }}
 
 - name: Remove source tempdir
   file:
