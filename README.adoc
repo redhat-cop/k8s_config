@@ -105,7 +105,12 @@ Settings for configuration sources:
 ==== Resource Definitions:
 
 Each resource definition is given as a dictionary.
-The presence of the key `definition`, `file`, `helm_template`, `json_patch`, `namespace`, `openshift_template`, or `template` determines how resource definitions are handled.
+The presence of the key `definition`, `file`, `helm_template`, `info`, `json_patch`, `namespace`, `openshift_template`, or `template` determines how resource definitions are handled.
+Each resource item may also define `register`, `until`, `retries`, and `delay` which will then be applied to Ansible tasks run for these items.
+
+NOTE: Due to limitations of Ansible, `register` actually sets non-cacheable host facts rather than true registered variables.
+Also, resource definition evaluation occurs in two passes, the first evaluation occurs before any items are processed and so references to registered variables must be protected with `default` filter or other methods to prevent undefined variable warnings.
+During the second pass of evaluation the registered values will be available and will be used in the actual application of the resource definition.
 
 * `namespace` - Namespace specified within `k8s_resources` to provide ordering for namespace creation and resource provisioning.
 
@@ -190,6 +195,9 @@ template:
     name: myconfig
     hostname: k8s.example.com
 ----
+
+* `info` - Gather info using the Ansible https://docs.ansible.com/ansible/latest/modules/k8s_info_module.html[k8s_info] module.
+Must specify `api_version` and `kind` and may also specify `name` and `namespace`.
 
 * `json_patch` - https://jsonpatch.com/[JSON patch] to apply to resource.
 Must specify `api_version`, `kind`, `name`, and `patch`.

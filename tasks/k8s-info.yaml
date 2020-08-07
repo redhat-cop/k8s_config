@@ -1,0 +1,19 @@
+---
+- name: >-
+    {{ _k8s_cluster_name }}
+    {{ _k8s_resources_item.name|default('resource') }} info 
+    {%- if _k8s_namespace_name|default('') != '' %} in {{ _k8s_namespace_name }}{% endif -%}
+  _k8s_info:
+    api: "{{ _k8s_cluster_api }}"
+    api_version: "{{ _info.apiVersion | default(_info.api_version) }}"
+    kind: "{{ _info.kind }}"
+    name: "{{ _info.name | default(omit) }}"
+    namespace: "{{ _info.namespace | default(_k8s_namespace_name) | default(omit) }}"
+    register: "{{ _k8s_resources_item.register | default(omit) }}"
+  until: >-
+    'until' not in _k8s_resources_item or
+    lookup('test', _k8s_resources_item.until)
+  delay: "{{ _k8s_resources_item.delay | default(omit) }}"
+  retries: "{{ _k8s_resources_item.retries | default(omit) }}"
+  vars:
+    _info: "{{ _k8s_resources_item.info }}"
