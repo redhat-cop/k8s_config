@@ -11,6 +11,12 @@
       }}
     api: "{{ _k8s_cluster_api }}"
     definition: "{{ _k8s_resource }}"
+    register: "{{ _k8s_resources_item.register | default(omit) }}"
+  until: >-
+    'until' not in _k8s_resources_item or
+    lookup('test', _k8s_resources_item.until)
+  delay: "{{ _k8s_resources_item.delay | default(omit) }}"
+  retries: "{{ _k8s_resources_item.retries | default(omit) }}"
   loop: "{{ range(0, _k8s_resources|length) | list }}"
   loop_control:
     loop_var: _k8s_resources_idx
