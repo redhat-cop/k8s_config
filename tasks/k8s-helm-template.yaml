@@ -31,6 +31,9 @@
     {{ _k8s_resources_item.name|default('Helm Template') }}
   command: >-
     {{ helm_cmd }} template
+    {% if _k8s_resources_item.helm_template.include_crds | default(false) | bool %}
+    --include-crds
+    {% endif %}
     {% if 'git' in _k8s_resources_item.helm_template %}
     {{ (r_helm_tmp.path ~ '/source/' ~ _k8s_resources_item.helm_template.dir | default('')) | quote }}
     {% else %}
