@@ -22,7 +22,7 @@
       'definition'         if 'definition'         in _k8s_namespace_resources_item else
       'definition'         if 'file'               in _k8s_namespace_resources_item else
       'helm-template'      if 'helm_template'      in _k8s_namespace_resources_item else
-      'info'               if 'info'               in _k8s_cluster_resources_item else
+      'info'               if 'info'               in _k8s_namespace_resources_item else
       'json-patch'         if 'json_patch'         in _k8s_namespace_resources_item else
       'openshift-template' if 'openshift_template' in _k8s_namespace_resources_item else
       'definition'         if 'template'           in _k8s_namespace_resources_item else
