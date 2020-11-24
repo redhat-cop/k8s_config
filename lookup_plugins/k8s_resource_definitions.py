@@ -44,7 +44,8 @@ class LookupModule(LookupBase):
         if not definition:
             return []
         elif isinstance(definition, list):
-            return definition
+            # Return list of items, removing empty definitions
+            return [item for item in definition if item]
         elif definition['kind'] == 'List' and definition['apiVersion'] == 'v1':
             return definition.get('items', [])
         else:
