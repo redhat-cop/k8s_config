@@ -39,6 +39,25 @@ from ansible.utils.display import Display
 
 display = Display()
 
+def apply_env_to_container_templates(env, objects):
+    '''
+    Apply environment variable definitions to resource definitions to mimic "oc new-app --env" capability.
+    '''
+    for obj in objects:
+        if isinstance(obj, dict):
+            if 'containers' in obj:
+                for container_template in obj['containers']:
+                    if 'env' not in container_template:
+                        container_template['env'] = []
+                    for k, v in env.items():
+                        container_template['env'].append(dict(name=k, value=v))
+            else:
+                for k, v in obj.items():
+                    if isinstance(v, list):
+                        apply_env_to_container_templates(env, v)
+                    elif isinstance(v, dict):
+                        apply_env_to_container_templates(env, [v])
+
 class LookupModule(LookupBase):
     def from_definition(self, definition):
         if not definition:
@@ -106,15 +125,25 @@ class LookupModule(LookupBase):
         searchpath.extend(variables.get('ansible_search_path', []))
 
         for term in terms:
+            resource_definitions = None
             if 'definition' in term:
-                ret.extend(self.from_definition(term['definition']))
+                resource_definitions = self.from_definition(term['definition'])
             elif 'file' in term:
-                ret.extend(self.from_file(term['file'], searchpath))
+                resource_definitions = self.from_file(term['file'], searchpath)
             elif 'template' in term:
-                ret.extend(self.from_template(term['template'], searchpath, variables))
+                resource_definitions = self.from_template(term['template'], searchpath, variables)
             elif 'url' in term:
-                ret.extend(self.from_url(term['url']))
+                resource_definitions = self.from_url(term['url'])
             else:
                 raise AnsibleError('Unknown resource definition: {}'.format(term))
+
+            if not resource_definitions:
+                continue
+
+            env = term.get('env')
+            if env:
+                apply_env_to_container_templates(env, resource_definitions)
+
+            ret.extend(resource_definitions)
 
         return ret

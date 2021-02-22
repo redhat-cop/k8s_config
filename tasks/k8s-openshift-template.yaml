@@ -41,12 +41,11 @@
 - name: >-
     {{ _k8s_cluster_name }} process
     {{ _k8s_resources_item.name }} resources
-  include_tasks: k8s-definition.yaml
+  include_tasks: k8s-resources.yaml
   vars:
-    _k8s_resources_item:
-      definition: "{{ _k8s_process_openshift_template.stdout | from_yaml }}"
-      name: >-
-        {{ _k8s_namespace_resources_item.name
-         | default(_k8s_cluster_resources_item.name)
-         | default('resource')
-        }}
+    _k8s_resources: >-
+      {{ query('k8s_resource_definitions', {
+        "definition": _k8s_process_openshift_template.stdout | from_yaml,
+        "env": _k8s_resources_item.openshift_template.env | default({}),
+        "name": _k8s_resources_item.name | default('OpenShift Template')
+      }) }}
