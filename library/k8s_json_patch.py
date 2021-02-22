@@ -115,7 +115,7 @@ except ImportError:
 class JsonPatchFailException(Exception):
     pass
 
-match_list_search = re.compile(r'\[\?(.*)=\'(.*)\'\]$')
+match_list_search = re.compile(r'\[\?(.*?)==?\'(.*?)\'\]$')
 match_num = re.compile(r'\d+$')
 
 def resolve_path(obj, path):
