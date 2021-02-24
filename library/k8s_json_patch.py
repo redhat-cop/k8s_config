@@ -185,9 +185,9 @@ def path_to_list(path):
 
 def path_from_list(path, last=None):
     if last:
-        return '/' + '/'.join(path) + '/' + last
+        return '/' + '/'.join([item.replace('~', '~0').replace('/', '~1') for item in path + [last]])
     else:
-        return '/' + '/'.join(path)
+        return '/' + '/'.join([item.replace('~', '~0').replace('/', '~1') for item in path])
 
 def _process_patch_add(patch_operation, patched_obj, value, context, matched_path, unmatched_path):
     for item in unmatched_path[:0:-1]:
