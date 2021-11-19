@@ -6,6 +6,15 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
+from six import string_types
+
+import sys
+
+try:
+    from openshift.dynamic.exceptions import \
+        DynamicApiError, NotFoundError, ConflictError, ForbiddenError, KubernetesValidateMissing
+except ImportError:
+    pass
 
 __metaclass__ = type
 
@@ -35,9 +44,10 @@ description:
 - Supports check mode.
 
 extends_documentation_fragment:
-- k8s_auth_options
-- k8s_name_options
-- k8s_resource_options
+- kubernetes.core.k8s_name_options
+- kubernetes.core.k8s_resource_options
+- kubernetes.core.k8s_auth_options
+
 
 options:
   action:
@@ -65,84 +75,6 @@ requirements:
   - "PyYAML >= 3.11"
 '''
 
-EXAMPLES = '''
-- name: Create a k8s namespace
-  k8s_resource:
-    action: create
-    name: testing
-    api_version: v1
-    kind: Namespace
-
-- name: Create a Service object from an inline definition
-  k8s_resource:
-    action: apply
-    definition:
-      apiVersion: v1
-      kind: Service
-      metadata:
-        name: web
-        namespace: testing
-        labels:
-          app: galaxy
-          service: web
-      spec:
-        selector:
-          app: galaxy
-          service: web
-        ports:
-        - protocol: TCP
-          targetPort: 8000
-          name: port-8000-tcp
-          port: 8000
-
-- name: Create a Service object by reading the definition from a file
-  k8s_resource:
-    state: present
-    src: /testing/service.yml
-
-- name: Remove an existing Service object
-  k8s_resource:
-    action: delete
-    api_version: v1
-    kind: Service
-    namespace: testing
-    name: web
-
-# Passing the object definition from a file
-
-- name: Create a Deployment by reading the definition from a local file
-  k8s:
-    state: present
-    src: /testing/deployment.yml
-
-- name: >-
-    Read definition file from the Ansible controller file system.
-    If the definition file has been encrypted with Ansible Vault it will automatically be decrypted.
-  k8s:
-    state: present
-    definition: "{{ lookup('file', '/testing/deployment.yml') }}"
-
-- name: Read definition file from the Ansible controller file system after Jinja templating
-  k8s:
-    state: present
-    definition: "{{ lookup('template', '/testing/deployment.yml') }}"
-
-- name: fail on validation errors
-  k8s:
-    state: present
-    definition: "{{ lookup('template', '/testing/deployment.yml') }}"
-    validate:
-      fail_on_error: yes
-
-- name: warn on validation errors, check for unexpected properties
-  k8s:
-    state: present
-    definition: "{{ lookup('template', '/testing/deployment.yml') }}"
-    validate:
-      fail_on_error: no
-      strict: yes
-'''
-
 RETURN = '''
 result:
   description:
@@ -157,28 +89,12 @@ result:
 '''
 
 import copy
-from distutils.version import LooseVersion
-import sys
 
-from ansible.module_utils.basic import missing_required_lib
-from ansible.module_utils.k8s.common import AUTH_ARG_SPEC, COMMON_ARG_SPEC
-from ansible.module_utils.six import string_types
-from ansible.module_utils.k8s.common import KubernetesAnsibleModule
+from ansible.module_utils.basic import AnsibleModule
+from ansible_collections.kubernetes.core.plugins.module_utils.common import (
+    K8sAnsibleMixin, COMMON_ARG_SPEC, NAME_ARG_SPEC, RESOURCE_ARG_SPEC, AUTH_ARG_SPEC,
+    WAIT_ARG_SPEC, DELETE_OPTS_ARG_SPEC)
 
-try:
-    import yaml
-    from openshift.dynamic.exceptions import \
-        DynamicApiError, NotFoundError, ConflictError, ForbiddenError, KubernetesValidateMissing
-except ImportError:
-    # Exceptions handled in common
-    pass
-
-HAS_K8S_APPLY = False
-try:
-    from openshift.dynamic.apply import apply_object
-    HAS_K8S_APPLY = True
-except ImportError:
-    pass
 
 def deep_merge(source, merge_patch):
     def _dict_merge(result, patch):
@@ -204,11 +120,21 @@ def deep_merge(source, merge_patch):
     return res
     
 
-class KubernetesResourceModule(KubernetesAnsibleModule):
+class KubernetesResourceModule(K8sAnsibleMixin):
+
+    @property
+    def validate_spec(self):
+        return dict(
+            fail_on_error=dict(type='bool'),
+            version=dict(),
+            strict=dict(type='bool', default=True)
+        )
 
     @property
     def argspec(self):
         argument_spec = copy.deepcopy(COMMON_ARG_SPEC)
+        argument_spec.update(copy.deepcopy(NAME_ARG_SPEC))
+        argument_spec.update(copy.deepcopy(RESOURCE_ARG_SPEC))
         argument_spec.update(copy.deepcopy(AUTH_ARG_SPEC))
         argument_spec['action'] = dict(
             type='str',
@@ -217,33 +143,32 @@ class KubernetesResourceModule(KubernetesAnsibleModule):
         )
         return argument_spec
 
-    def __init__(self, *args, **kwargs):
-        self.client = None
-
-        mutually_exclusive = [
-            ('resource_definition', 'src'),
-        ]
-
-        KubernetesAnsibleModule.__init__(
-            self, *args,
-            mutually_exclusive=mutually_exclusive,
+    def __init__(self, k8s_kind=None, *args, **kwargs):
+        module = AnsibleModule(
+            argument_spec=self.argspec,
             supports_check_mode=True,
-            **kwargs
         )
 
-        self.action = self.params.get('action')
-        self.kind = self.params.get('kind')
+        self.module = module
+        self.check_mode = self.module.check_mode
+        self.params = self.module.params
+        self.fail_json = self.module.fail_json
+        self.fail = self.module.fail_json
+        self.exit_json = self.module.exit_json
+
+        super(KubernetesResourceModule, self).__init__(*args, **kwargs)
+
+        self.client = None
+        self.warnings = []
+
+        self.kind = k8s_kind or self.params.get('kind')
         self.api_version = self.params.get('api_version')
         self.name = self.params.get('name')
         self.namespace = self.params.get('namespace')
-        if self.action in ('merge', 'stategic-merge'):
-            if LooseVersion(self.openshift_version) < LooseVersion("0.6.2"):
-                self.fail_json(msg=missing_required_lib("openshift >= 0.6.2", reason="for action "+self.action))
-        if self.action == 'apply':
-            if not HAS_K8S_APPLY:
-                    self.fail_json(msg=missing_required_lib("openshift >= 0.9.2", reason="for action apply"))
+        self.action = self.params.get('action')
+        self.set_resource_definitions()
 
-        src = self.params.get('src')
+    def set_resource_definitions(self):
         resource_definition = self.params.get('resource_definition')
         resource_definitions = []
 

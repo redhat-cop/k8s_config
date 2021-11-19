@@ -3,7 +3,7 @@
 # Copyright: (c) 2019, Johnathan Kupferer <jkupfere@redhat.com>
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 #
-# k8s_git_clone action plugin
+# k8s_config_git_clone action plugin
 #
 # This is a wrapper around the git module to facilitate arguments for git being passed in
 # a single `module_args` argument.

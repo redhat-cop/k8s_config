@@ -1,6 +1,6 @@
 ---
 - name: Git clone config source {{ _k8s_config_source.name }}
-  k8s_git_clone:
+  k8s_config_git_clone:
     dest: "{{ _k8s_config_source_cache_dir }}"
     module_args: "{{ _k8s_config_source.git }}"
   changed_when: false

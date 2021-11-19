@@ -7,7 +7,7 @@ import unittest
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../library'))
 
-import k8s_json_patch
+import k8s_config_json_patch
 
 deployment = {
     'apiVersion': 'apps/v1',
@@ -60,8 +60,8 @@ deployment = {
 
 class TestJsonPatchResolvePath(unittest.TestCase):
     def test_00_simple_resolve_path(self):
-        path_list = k8s_json_patch.path_to_list('/metadata/name')
-        value, context, key, matched_path, unmatched_path = k8s_json_patch.resolve_path(deployment, path_list)
+        path_list = k8s_config_json_patch.path_to_list('/metadata/name')
+        value, context, key, matched_path, unmatched_path = k8s_config_json_patch.resolve_path(deployment, path_list)
         self.assertEqual(value, 'myapp')
         self.assertEqual(context, deployment['metadata'])
         self.assertEqual(key, 'name')
@@ -69,8 +69,8 @@ class TestJsonPatchResolvePath(unittest.TestCase):
         self.assertEqual(unmatched_path, [])
 
     def test_01_list_resolve_path(self):
-        path_list = k8s_json_patch.path_to_list('/spec/template/spec/containers/0/env/0')
-        value, context, key, matched_path, unmatched_path = k8s_json_patch.resolve_path(deployment, path_list)
+        path_list = k8s_config_json_patch.path_to_list('/spec/template/spec/containers/0/env/0')
+        value, context, key, matched_path, unmatched_path = k8s_config_json_patch.resolve_path(deployment, path_list)
         self.assertEqual(value, {'name': 'VAR1', 'value': 'value1'})
         self.assertEqual(context, deployment['spec']['template']['spec']['containers'][0]['env'])
         self.assertEqual(key, 0)
@@ -78,8 +78,8 @@ class TestJsonPatchResolvePath(unittest.TestCase):
         self.assertEqual(unmatched_path, [])
 
     def test_02_deep_resolve_path(self):
-        path_list = k8s_json_patch.path_to_list('/spec/template/spec/containers/0/env/0/value')
-        value, context, key, matched_path, unmatched_path = k8s_json_patch.resolve_path(deployment, path_list)
+        path_list = k8s_config_json_patch.path_to_list('/spec/template/spec/containers/0/env/0/value')
+        value, context, key, matched_path, unmatched_path = k8s_config_json_patch.resolve_path(deployment, path_list)
         self.assertEqual(value, 'value1')
         self.assertEqual(context, deployment['spec']['template']['spec']['containers'][0]['env'][0])
         self.assertEqual(key, 'value')
@@ -87,8 +87,8 @@ class TestJsonPatchResolvePath(unittest.TestCase):
         self.assertEqual(unmatched_path, [])
 
     def test_03_query_resolve_path(self):
-        path_list = k8s_json_patch.path_to_list("/spec/template/spec/containers/[?name='app']/env/[?name='VAR2']")
-        value, context, key, matched_path, unmatched_path = k8s_json_patch.resolve_path(deployment, path_list)
+        path_list = k8s_config_json_patch.path_to_list("/spec/template/spec/containers/[?name='app']/env/[?name='VAR2']")
+        value, context, key, matched_path, unmatched_path = k8s_config_json_patch.resolve_path(deployment, path_list)
         self.assertEqual(value, {'name': 'VAR2', 'value': 'value2'})
         self.assertEqual(context, deployment['spec']['template']['spec']['containers'][0]['env'])
         self.assertEqual(key, 1)
@@ -96,8 +96,8 @@ class TestJsonPatchResolvePath(unittest.TestCase):
         self.assertEqual(unmatched_path, [])
 
     def test_04_query_resolve_path(self):
-        path_list = k8s_json_patch.path_to_list("/spec/template/spec/containers/[?name='app']/env/[?name='VAR2']/value")
-        value, context, key, matched_path, unmatched_path = k8s_json_patch.resolve_path(deployment, path_list)
+        path_list = k8s_config_json_patch.path_to_list("/spec/template/spec/containers/[?name='app']/env/[?name='VAR2']/value")
+        value, context, key, matched_path, unmatched_path = k8s_config_json_patch.resolve_path(deployment, path_list)
         self.assertEqual(value, 'value2')
         self.assertEqual(context, deployment['spec']['template']['spec']['containers'][0]['env'][1])
         self.assertEqual(key, 'value')
@@ -105,8 +105,8 @@ class TestJsonPatchResolvePath(unittest.TestCase):
         self.assertEqual(unmatched_path, [])
 
     def test_05_unmatched_resolve_path(self):
-        path_list = k8s_json_patch.path_to_list('/metadata/labels/name')
-        value, context, key, matched_path, unmatched_path = k8s_json_patch.resolve_path(deployment, path_list)
+        path_list = k8s_config_json_patch.path_to_list('/metadata/labels/name')
+        value, context, key, matched_path, unmatched_path = k8s_config_json_patch.resolve_path(deployment, path_list)
         self.assertEqual(value, None)
         self.assertEqual(context, deployment['metadata'])
         self.assertEqual(key, 'labels')
@@ -114,8 +114,8 @@ class TestJsonPatchResolvePath(unittest.TestCase):
         self.assertEqual(unmatched_path,  ['labels','name'])
 
     def test_06_unmatched_resolve_path(self):
-        path_list = k8s_json_patch.path_to_list("/spec/template/spec/containers/[?name='nomatch']")
-        value, context, key, matched_path, unmatched_path = k8s_json_patch.resolve_path(deployment, path_list)
+        path_list = k8s_config_json_patch.path_to_list("/spec/template/spec/containers/[?name='nomatch']")
+        value, context, key, matched_path, unmatched_path = k8s_config_json_patch.resolve_path(deployment, path_list)
         self.assertEqual(value, None)
         self.assertEqual(context, deployment['spec']['template']['spec']['containers'])
         self.assertEqual(key, "[?name='nomatch']")
@@ -123,8 +123,8 @@ class TestJsonPatchResolvePath(unittest.TestCase):
         self.assertEqual(unmatched_path,  ["[?name='nomatch']"])
 
     def test_07_unmatched_resolve_path(self):
-        path_list = k8s_json_patch.path_to_list("/spec/template/spec/containers/[?name='app']/env/[?name='NOSUCH']/value")
-        value, context, key, matched_path, unmatched_path = k8s_json_patch.resolve_path(deployment, path_list)
+        path_list = k8s_config_json_patch.path_to_list("/spec/template/spec/containers/[?name='app']/env/[?name='NOSUCH']/value")
+        value, context, key, matched_path, unmatched_path = k8s_config_json_patch.resolve_path(deployment, path_list)
         self.assertEqual(value, None)
         self.assertEqual(context, deployment['spec']['template']['spec']['containers'][0]['env'])
         self.assertEqual(key, "[?name='NOSUCH']")
@@ -134,7 +134,7 @@ class TestJsonPatchResolvePath(unittest.TestCase):
 class TestJsonPatchAdd(unittest.TestCase):
     def test_00(self):
         deployment_copy = copy.deepcopy(deployment)
-        processed_patch_operation = k8s_json_patch.process_patch_add({
+        processed_patch_operation = k8s_config_json_patch.process_patch_add({
             'op': 'add',
             'path': "/spec/template/spec/containers/[?name='app']/env/[?name='VAR1']/value",
             'value': 'updated'
@@ -151,7 +151,7 @@ class TestJsonPatchAdd(unittest.TestCase):
 
     def test_01(self):
         deployment_copy = copy.deepcopy(deployment)
-        processed_patch_operation = k8s_json_patch.process_patch_add({
+        processed_patch_operation = k8s_config_json_patch.process_patch_add({
             'op': 'add',
             'path': "/spec/template/spec/containers/[?name='app']/env/[?name='NEWVAR']/value",
             'value': 'new'
@@ -168,7 +168,7 @@ class TestJsonPatchAdd(unittest.TestCase):
 
     def test_02(self):
         deployment_copy = copy.deepcopy(deployment)
-        processed_patch_operation = k8s_json_patch.process_patch_add({
+        processed_patch_operation = k8s_config_json_patch.process_patch_add({
             'op': 'add',
             'path': "/spec/template/spec/containers/[?name='app']/env/99",
             'value': {'name': 'NEWVAR', 'value': 'new'}
@@ -184,18 +184,18 @@ class TestJsonPatchAdd(unittest.TestCase):
         )
 
     def test_03(self):
-        with self.assertRaises(k8s_json_patch.JsonPatchFailException):
+        with self.assertRaises(k8s_config_json_patch.JsonPatchFailException):
             deployment_copy = copy.deepcopy(deployment)
-            k8s_json_patch.process_patch_add({
+            k8s_config_json_patch.process_patch_add({
                 'op': 'add',
                 'path': '/spec/template/spec/containers/badpath',
                 'value': 'willfail'
             }, deployment_copy)
 
     def test_04(self):
-        with self.assertRaises(k8s_json_patch.JsonPatchFailException):
+        with self.assertRaises(k8s_config_json_patch.JsonPatchFailException):
             deployment_copy = copy.deepcopy(deployment)
-            k8s_json_patch.process_patch_add({
+            k8s_config_json_patch.process_patch_add({
                 'op': 'add',
                 'path': '/spec/template/spec/containers/0/env/0/value',
                 'replace': False,
@@ -204,7 +204,7 @@ class TestJsonPatchAdd(unittest.TestCase):
 
     def test_05(self):
         deployment_copy = copy.deepcopy(deployment)
-        processed_patch_operation = k8s_json_patch.process_patch_add({
+        processed_patch_operation = k8s_config_json_patch.process_patch_add({
             'op': 'add',
             'path': "/spec/template/spec/containers/[?name='app']/env/[?name='VAR1']/value",
             'value': 'value1'
@@ -214,7 +214,7 @@ class TestJsonPatchAdd(unittest.TestCase):
 class TestJsonPatchRemove(unittest.TestCase):
     def test_00(self):
         deployment_copy = copy.deepcopy(deployment)
-        processed_patch_operation = k8s_json_patch.process_patch_remove({
+        processed_patch_operation = k8s_config_json_patch.process_patch_remove({
             'op': 'remove',
             'path': "/spec/template/spec/containers/[?name='app']/env/[?name='VAR2']"
         }, deployment_copy)
@@ -228,7 +228,7 @@ class TestJsonPatchRemove(unittest.TestCase):
 
     def test_01(self):
         deployment_copy = copy.deepcopy(deployment)
-        processed_patch_operation = k8s_json_patch.process_patch_remove({
+        processed_patch_operation = k8s_config_json_patch.process_patch_remove({
             'op': 'remove',
             'path': "/spec/labels/nolabel"
         }, deployment_copy)
@@ -237,7 +237,7 @@ class TestJsonPatchRemove(unittest.TestCase):
 class TestJsonPatchReplace(unittest.TestCase):
     def test_00(self):
         deployment_copy = copy.deepcopy(deployment)
-        processed_patch_operation = k8s_json_patch.process_patch_replace({
+        processed_patch_operation = k8s_config_json_patch.process_patch_replace({
             'op': 'replace',
             'path': "/spec/template/spec/containers/[?name='app']/env/[?name='VAR1']/value",
             'value': 'updated'
@@ -253,9 +253,9 @@ class TestJsonPatchReplace(unittest.TestCase):
         )
 
     def test_01(self):
-        with self.assertRaises(k8s_json_patch.JsonPatchFailException):
+        with self.assertRaises(k8s_config_json_patch.JsonPatchFailException):
             deployment_copy = copy.deepcopy(deployment)
-            k8s_json_patch.process_patch_replace({
+            k8s_config_json_patch.process_patch_replace({
                 'op': 'replace',
                 'path': '/spec/labels/nolabel',
                 'value': 'willfail'
@@ -264,7 +264,7 @@ class TestJsonPatchReplace(unittest.TestCase):
 class TestJsonPatchTest(unittest.TestCase):
     def test_00(self):
         deployment_copy = copy.deepcopy(deployment)
-        processed_patch_operation = k8s_json_patch.process_patch_test({
+        processed_patch_operation = k8s_config_json_patch.process_patch_test({
             'op': 'test',
             'path': "/spec/template/spec/containers/[?name='app']/env/[?name='VAR1']/value",
             'value': 'value1'
@@ -276,36 +276,36 @@ class TestJsonPatchTest(unittest.TestCase):
         })
 
     def test_01(self):
-        with self.assertRaises(k8s_json_patch.JsonPatchFailException):
+        with self.assertRaises(k8s_config_json_patch.JsonPatchFailException):
             deployment_copy = copy.deepcopy(deployment)
-            k8s_json_patch.process_patch_test({
+            k8s_config_json_patch.process_patch_test({
                 'op': 'test',
                 'path': '/spec/labels/nolabel',
                 'value': 'willfail'
             }, deployment_copy)
 
     def test_02(self):
-        with self.assertRaises(k8s_json_patch.JsonPatchFailException):
+        with self.assertRaises(k8s_config_json_patch.JsonPatchFailException):
             deployment_copy = copy.deepcopy(deployment)
-            k8s_json_patch.process_patch_test({
+            k8s_config_json_patch.process_patch_test({
                 'op': 'test',
                 'path': "/spec/template/spec/containers/[?name='app']/env/[?name='VAR1']/value",
                 'value': 'willfail'
             }, deployment_copy)
 
     def test_03(self):
-        with self.assertRaises(k8s_json_patch.JsonPatchFailException):
+        with self.assertRaises(k8s_config_json_patch.JsonPatchFailException):
             deployment_copy = copy.deepcopy(deployment)
-            k8s_json_patch.process_patch_test({
+            k8s_config_json_patch.process_patch_test({
                 'op': 'test',
                 'path': "/spec/template/spec/containers/[?name='app']/env/[?name='VAR1']/value",
                 'state': 'absent'
             }, deployment_copy)
 
     def test_04(self):
-        with self.assertRaises(k8s_json_patch.JsonPatchFailException):
+        with self.assertRaises(k8s_config_json_patch.JsonPatchFailException):
             deployment_copy = copy.deepcopy(deployment)
-            k8s_json_patch.process_patch_test({
+            k8s_config_json_patch.process_patch_test({
                 'op': 'test',
                 'path': "/spec/template/spec/containers/[?name='app']/env/[?name='VAR1']/value",
                 'state': 'unequal',
@@ -314,7 +314,7 @@ class TestJsonPatchTest(unittest.TestCase):
 
     def test_05(self):
         deployment_copy = copy.deepcopy(deployment)
-        processed_patch_operation = k8s_json_patch.process_patch_test({
+        processed_patch_operation = k8s_config_json_patch.process_patch_test({
             'op': 'test',
             'path': "/spec/template/spec/containers/[?name='app']/env/[?name='VAR3']/value",
             'state': ['unequal', 'absent'],
@@ -325,7 +325,7 @@ class TestJsonPatchTest(unittest.TestCase):
 class TestJsonPatchCopy(unittest.TestCase):
     def test_00(self):
         deployment_copy = copy.deepcopy(deployment)
-        processed_patch_operation = k8s_json_patch.process_patch_copy({
+        processed_patch_operation = k8s_config_json_patch.process_patch_copy({
             'op': 'copy',
             'from': "/spec/template/spec/containers/[?name='app']/env/[?name='VAR1']",
             'path': "/spec/template/spec/containers/[?name='app']/env/[?name='VAR3']"
@@ -337,9 +337,9 @@ class TestJsonPatchCopy(unittest.TestCase):
         })
 
     def test_01(self):
-        with self.assertRaises(k8s_json_patch.JsonPatchFailException):
+        with self.assertRaises(k8s_config_json_patch.JsonPatchFailException):
             deployment_copy = copy.deepcopy(deployment)
-            k8s_json_patch.process_patch_copy({
+            k8s_config_json_patch.process_patch_copy({
                 'op': 'copy',
                 'from': "/spec/template/spec/containers/[?name='app']/env/[?name='NOFIND']",
                 'path': "/spec/template/spec/containers/[?name='app']/env/[?name='WILLFAIL']"
@@ -348,7 +348,7 @@ class TestJsonPatchCopy(unittest.TestCase):
 class TestJsonPatchMove(unittest.TestCase):
     def test_00(self):
         deployment_copy = copy.deepcopy(deployment)
-        processed_patch_operation = k8s_json_patch.process_patch_move({
+        processed_patch_operation = k8s_config_json_patch.process_patch_move({
             'op': 'copy',
             'from': "/spec/template/spec/containers/[?name='app']/env/[?name='VAR1']",
             'path': "/spec/template/spec/containers/[?name='app']/env/[?name='VAR3']"
@@ -363,9 +363,9 @@ class TestJsonPatchMove(unittest.TestCase):
         }])
 
     def test_01(self):
-        with self.assertRaises(k8s_json_patch.JsonPatchFailException):
+        with self.assertRaises(k8s_config_json_patch.JsonPatchFailException):
             deployment_copy = copy.deepcopy(deployment)
-            k8s_json_patch.process_patch_copy({
+            k8s_config_json_patch.process_patch_copy({
                 'op': 'copy',
                 'from': "/spec/template/spec/containers/[?name='app']/env/[?name='NOFIND']",
                 'path': "/spec/template/spec/containers/[?name='app']/env/[?name='WILLFAIL']"
@@ -374,7 +374,7 @@ class TestJsonPatchMove(unittest.TestCase):
 class TestJsonPatch(unittest.TestCase):
     def test_00(self):
         deployment_copy = copy.deepcopy(deployment)
-        processed_patch, patched_obj = k8s_json_patch.process_patch([{
+        processed_patch, patched_obj = k8s_config_json_patch.process_patch([{
             'op': 'add',
             'path': "/spec/template/spec/containers/[?name='app']/env/[?name='VAR1']/value",
             'value': 'replaced'
@@ -388,7 +388,7 @@ class TestJsonPatch(unittest.TestCase):
 
     def test_01(self):
         deployment_copy = copy.deepcopy(deployment)
-        processed_patch, patched_obj = k8s_json_patch.process_patch([{
+        processed_patch, patched_obj = k8s_config_json_patch.process_patch([{
             'op': 'test',
             'path': "/spec/template/spec/containers/[?name='app']/env/[?name='VAR1']/value",
             'state': 'absent',
@@ -402,7 +402,7 @@ class TestJsonPatch(unittest.TestCase):
 
     def test_02(self):
         deployment_copy = copy.deepcopy(deployment)
-        processed_patch, patched_obj = k8s_json_patch.process_patch([{
+        processed_patch, patched_obj = k8s_config_json_patch.process_patch([{
             'op': 'test',
             'path': "/spec/template/spec/containers/[?name='app']/env/[?name='VAR1']/value",
             'state': 'present',
@@ -420,7 +420,7 @@ class TestJsonPatch(unittest.TestCase):
 
     #def test_03(self):
     #    deployment_copy = copy.deepcopy(deployment)
-    #    processed_patch, patched_obj = k8s_json_patch.process_patch([{
+    #    processed_patch, patched_obj = k8s_config_json_patch.process_patch([{
     #        'op': 'test',
     #        'path': "/spec/template/spec/containers/[?name='app']/env/[?name='VAR1']/value",
     #        'state': 'present',
@@ -435,7 +435,7 @@ class TestJsonPatch(unittest.TestCase):
 
     #def test_04(self):
     #    deployment_copy = copy.deepcopy(deployment)
-    #    processed_patch, patched_obj = k8s_json_patch.process_patch([{
+    #    processed_patch, patched_obj = k8s_config_json_patch.process_patch([{
     #        'op': 'add',
     #        'path': "/spec/template/spec/containers/[?name='app']/env/[?name='VAR3']/value",
     #        'value': 'updated',
