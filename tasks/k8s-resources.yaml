@@ -3,14 +3,14 @@
     {{ _k8s_cluster_name }}
     {{ _k8s_resources_item.name|default('resources') }}
     {%- if _k8s_namespace_name|default('') != '' %} in {{ _k8s_namespace_name }}{% endif -%}
-  _k8s_resource:
+  k8s_config_resource:
     action: >-
       {{ k8s_config_action_override
        | default(_k8s_resources_item.action)
        | default(k8s_config_action_default)
       }}
     api: "{{ _k8s_cluster_api }}"
-    definition: "{{ _k8s_resource }}"
+    definition: "{{ _k8s_resource_definition }}"
     register: "{{ _k8s_resources_item.register | default(omit) }}"
   until: >-
     'until' not in _k8s_resources_item or
@@ -21,13 +21,13 @@
   loop_control:
     loop_var: _k8s_resources_idx
     label: >-
-      {{ _k8s_resource.kind }}({{ _k8s_resource.apiVersion }})
-      {{ _k8s_resource.metadata.name }}
-      {%- if 'namespace' in _k8s_resource.metadata %}
-      in {{ _k8s_resource.metadata.namespace }}
+      {{ _k8s_resource_definition.kind }}({{ _k8s_resource_definition.apiVersion }})
+      {{ _k8s_resource_definition.metadata.name }}
+      {%- if 'namespace' in _k8s_resource_definition.metadata %}
+      in {{ _k8s_resource_definition.metadata.namespace }}
       {%- endif -%}
   vars:
-    _k8s_resource: >-
+    _k8s_resource_definition: >-
       {% if _k8s_namespace_name|default('') != '' -%}
       {{ _k8s_resources[_k8s_resources_idx]
        | combine({'metadata':{'namespace': _k8s_namespace_name}}, recursive=True) }}

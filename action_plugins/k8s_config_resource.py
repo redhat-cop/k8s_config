@@ -24,7 +24,7 @@ class ActionModule(ActionBase):
 
         result.update(
             self._execute_module(
-                module_name='k8s_info',
+                module_name='k8s_config_resource',
                 module_args=k8s_module_args,
                 task_vars=task_vars,
             )

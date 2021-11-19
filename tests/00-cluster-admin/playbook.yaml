@@ -5,7 +5,7 @@
   - k8s_config
   tasks:
   - name: Get configmap-from-definition
-    k8s_info:
+    kubernetes.core.k8s_info:
       api_version: v1
       kind: ConfigMap
       name: configmap-from-definition
@@ -36,7 +36,7 @@
       label: "{{ item.msg }}"
 
   - name: Get configmap-from-file
-    k8s_info:
+    kubernetes.core.k8s_info:
       api_version: v1
       kind: ConfigMap
       name: configmap-from-definition
@@ -45,7 +45,7 @@
     failed_when: not r_get_configmap_from_definition.resources
 
   - name: Get configmap-from-template
-    k8s_info:
+    kubernetes.core.k8s_info:
       api_version: v1
       kind: ConfigMap
       name: configmap-from-template
@@ -68,7 +68,7 @@
       label: "{{ item.msg }}"
 
   - name: Get configmap-replace
-    k8s_info:
+    kubernetes.core.k8s_info:
       api_version: v1
       kind: ConfigMap
       name: configmap-replace
@@ -91,7 +91,7 @@
       label: "{{ item.msg }}"
 
   - name: Get configmap-apply
-    k8s_info:
+    kubernetes.core.k8s_info:
       api_version: v1
       kind: ConfigMap
       name: configmap-apply
@@ -116,7 +116,7 @@
       label: "{{ item.msg }}"
 
   - name: Get configmap-patch
-    k8s_info:
+    kubernetes.core.k8s_info:
       api_version: v1
       kind: ConfigMap
       name: configmap-patch

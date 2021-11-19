@@ -26,7 +26,7 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 
 DOCUMENTATION = '''
 
-module: k8s_namespace
+module: k8s_config_namespace
 
 short_description: Manage Kubernetes (K8s) namespaces
 
@@ -39,7 +39,7 @@ description:
 - Use the OpenShift Python client to manage namespaces.
 
 extends_documentation_fragment:
-- k8s_auth_options
+- kubernetes.core.k8s_auth_options
 
 options:
   name:
@@ -54,7 +54,7 @@ requirements:
 
 EXAMPLES = '''
 - name: Create a k8s namespace
-  k8s_namespace:
+  k8s_config_namespace:
     name: test-namespace
 '''
 

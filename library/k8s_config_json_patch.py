@@ -10,15 +10,11 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 
-ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'status': ['preview'],
-                    'supported_by': 'community'}
-
 DOCUMENTATION = '''
 
-module: k8s_resource
+module: k8s_config_json_patch
 
-short_description: Manage Kubernetes (k8s) resources 
+short_description: Dynamically patch kubernetes objects
 
 version_added: "2.9"
 
@@ -31,8 +27,8 @@ description:
 - Supports check mode.
 
 extends_documentation_fragment:
-- k8s_auth_options
-- k8s_name_options
+- kubernetes.core.k8s_auth_options
+- kubernetes.core.k8s_name_options
 
 options:
   patch:
@@ -61,7 +57,7 @@ requirements:
 
 EXAMPLES = '''
 - name: Set key in ConfigMap if not set
-  k8s_json_patch:
+  k8s_config_json_patch:
     api_version: v1
     kind: ConfigMap
     name: myconf
@@ -71,7 +67,7 @@ EXAMPLES = '''
       value: somevalue
 
 - name: Set ENV_LEVEL environment variable in Deployment
-  k8s_json_patch:
+  k8s_config_json_patch:
     api_version: apps/v1
     kind: Deployment
     name: myapp
@@ -98,19 +94,11 @@ result:
 
 import copy
 import re
-from distutils.version import LooseVersion
 
-from ansible.module_utils.basic import missing_required_lib
-from ansible.module_utils.k8s.common import AUTH_ARG_SPEC, COMMON_ARG_SPEC
-from ansible.module_utils.k8s.common import KubernetesAnsibleModule
-
-try:
-    import yaml
-    from openshift.dynamic.exceptions import \
-        DynamicApiError, NotFoundError, ForbiddenError
-except ImportError:
-    # Exceptions handled in common
-    pass
+from ansible.module_utils.basic import AnsibleModule
+from ansible_collections.kubernetes.core.plugins.module_utils.common import (
+    K8sAnsibleMixin, COMMON_ARG_SPEC, NAME_ARG_SPEC, RESOURCE_ARG_SPEC, AUTH_ARG_SPEC,
+    WAIT_ARG_SPEC, DELETE_OPTS_ARG_SPEC)
 
 class JsonPatchFailException(Exception):
     pass
@@ -372,10 +360,20 @@ def process_patch(json_patch, existing):
 
     return processed_patch, patched_obj
 
-class KubernetesJsonPatchModule(KubernetesAnsibleModule):
+class KubernetesJsonPatchModule(K8sAnsibleMixin):
+
+    @property
+    def validate_spec(self):
+        return dict(
+            fail_on_error=dict(type='bool'),
+            version=dict(),
+            strict=dict(type='bool', default=True)
+        )
+
     @property
     def argspec(self):
         argument_spec = copy.deepcopy(COMMON_ARG_SPEC)
+        argument_spec.update(copy.deepcopy(NAME_ARG_SPEC))
         argument_spec.update(copy.deepcopy(AUTH_ARG_SPEC))
         argument_spec['patch'] = dict(
             type='list',
@@ -383,23 +381,30 @@ class KubernetesJsonPatchModule(KubernetesAnsibleModule):
         )
         return argument_spec
 
-    def __init__(self, *args, **kwargs):
-        self.client = None
+    def __init__(self, k8s_kind=None, *args, **kwargs):
 
-        KubernetesAnsibleModule.__init__(
-            self, *args,
-            supports_check_mode=True,
-            **kwargs
+        module = AnsibleModule(
+            argument_spec = self.argspec,
+            supports_check_mode = True
         )
+
+        self.module = module
+        self.check_mode = self.module.check_mode
+        self.params = self.module.params
+        self.fail_json = self.module.fail_json
+        self.fail = self.module.fail_json
+        self.exit_json = self.module.exit_json
+
+        super(KubernetesJsonPatchModule, self).__init__(*args, **kwargs)
+
+        self.client = None
+        self.warnings = []
 
         self.kind = self.params.get('kind')
         self.api_version = self.params.get('api_version')
         self.name = self.params.get('name')
         self.namespace = self.params.get('namespace')
         self.patch = self.params.get('patch')
-
-        if LooseVersion(self.openshift_version) < LooseVersion("0.6.2"):
-            self.fail_json(msg=missing_required_lib("openshift >= 0.6.2"))
 
     def execute_module(self):
         self.client = self.get_api_client()
