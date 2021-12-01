@@ -11,7 +11,7 @@ toc::[]
 
 Ansible 2.9+
 
-k8s module support
+kubernetes.core collection installed
 
 == Installation
 
