@@ -2,6 +2,7 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import (absolute_import, division, print_function)
+from ansible.plugins.filter.core import to_bool
 __metaclass__ = type
 
 DOCUMENTATION = """
@@ -32,7 +33,10 @@ from ansible.plugins.lookup import LookupBase
 class LookupModule(LookupBase):
 
     def run(self, terms, variables, **kwargs):
-        return [
-            self._templar.template('{{(' + term + ')|bool}}')
-            for term in terms
-        ]
+        result = []
+        for term in terms:
+            if isinstance(term, str):
+                result.append(self._templar.template('{{(' + term + ')|bool}}'))
+            else:
+                result.append(to_bool(term))
+        return result
