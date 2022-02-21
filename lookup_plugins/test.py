@@ -1,4 +1,5 @@
 # Copyright: (c) 2020, Johnathan Kupferer <jkupfere@redhat.com>
+# Copyright: (c) 2022, Guillaume Core <gucore@redhat.com>
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import (absolute_import, division, print_function)
@@ -6,7 +7,7 @@ __metaclass__ = type
 
 DOCUMENTATION = """
     lookup: test
-    author: Johnathan Kupferer <jkupfere@redhat.com>
+    author: Johnathan Kupferer <jkupfere@redhat.com>, Guillaume Core <gucore@redhat.com>
     version_added: "2.9"
     short_description: check test condition
     description:
