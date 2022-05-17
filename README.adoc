@@ -155,21 +155,38 @@ file: configmap.yaml
 ----
 
 * `helm_template` - Helm template processing.
-Helm template can be specified with `git`, `dir`, and `values`.
+Helm template can be specified with `chart`, `git`, `dir`, `repo`, `values` and `version`.
+If `chart` is specified then the chart will be looked up in a chart repository, configured with `repo` and `version`.
 `git` may provide a dictionary of parameters to pass to the `git` module and must at least specify `repo`.
 If `git` is provided then `dir` is the sub-directory within the repository holding the helm chart.
 If `git` is not provided then the value of `dir` will be searched for within any `helm` subdirectories within the `k8s_config_search_path`.
 Values for the helm chart may be passed as structured data with `values`.
 The `helm` command must be installed to process the template on the host.
 +
-----
+Example using a chart repository:
++
+----------------------------------------------
+helm_template:
+  chart: cert-manager
+  repo: https://charts.jetstack.io
+  values:
+    extraArgs:
+    - --dns01-recursive-nameservers=1.1.1.1:53
+    - --dns01-recursive-nameservers-only
+    installCRDs: true
+  version: v1.8.0
+----------------------------------------------
++
+Example using git:
++
+---------------------------------------------------
 helm_template:
   git:
     repo: https://github.com/redhat-cop/anarchy.git
   dir: helm/
   values:
     replicaCount: 2
-----
+---------------------------------------------------
 
 * `openshift_template` - OpenShift template file and parameters.
 The file can be specified with `file` or `url`.
