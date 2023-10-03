@@ -9,9 +9,17 @@ toc::[]
 
 == Requirements
 
-Ansible 2.9+
+*Ansible version*
 
-k8s module support
+2.9+
+
+*Collections*
+
+kubernetes.core for k8s module support
+
+*Python*
+
+kubernetes module
 
 == Installation
 
